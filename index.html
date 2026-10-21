@@ -49,6 +49,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var
 details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:var(--deep);font-weight:500}details p{margin:6px 0 0}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .done{background:var(--ok-soft);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.lnk{font:inherit;display:inline-block;background:none;border:0;color:var(--deep);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:10px}.shr{display:flex;flex-wrap:wrap;justify-content:center;gap:0 6px;margin:4px 0 0}.done .btn{margin-top:6px}
 .done h2{color:var(--ok);font-size:20px}.done p{margin:0}
 .sheet{position:fixed;inset:0;background:var(--shade);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet .in{background:var(--card);width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:90%;overflow:auto}
@@ -107,6 +108,7 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
     <p class="err" id="cErr" role="alert" hidden></p>
     <button type="submit" class="btn hot" id="cSend">접수하기</button>
   </form>
+  <p class="shr"><button type="button" class="lnk" id="shB">이웃·친구에게 알려주기</button><a class="lnk" id="smB" href="sms:">문자로 보내기</a><button type="button" class="lnk" id="qrB">QR 보여주기</button></p>
   <div class="box" id="inst" hidden>
     <b>앱처럼 쓰기</b>
     <p class="sub" id="instT">홈 화면에 추가하면 아이콘을 눌러 바로 열 수 있습니다.</p>
@@ -140,8 +142,8 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
     var box=$('inst'),btn=$('instB'),t=$('instT'),ev=null,ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
     box.hidden=false;
     if(ios)t.textContent='사파리 아래의 공유 버튼(네모에 위쪽 화살표)을 누르고 "홈 화면에 추가"를 선택하세요.';
-    else t.textContent='아래 버튼을 누르거나, 크롬 오른쪽 위 ⋮ 메뉴에서 "홈 화면에 추가"를 선택하세요.';
-    window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();ev=e;btn.hidden=false;});
+    else t.textContent='크롬 오른쪽 위 ⋮ 메뉴에서 "홈 화면에 추가"(또는 "앱 설치")를 선택하세요.';
+    window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();ev=e;btn.hidden=false;t.textContent='아래 버튼을 누르면 홈 화면에 추가됩니다.';});
     btn.onclick=function(){if(ev){ev.prompt();ev=null;btn.hidden=true;}};
     window.addEventListener('appinstalled',function(){box.hidden=true;});
   })();
@@ -213,12 +215,72 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
     .then(function(r){if(!r.ok)throw new Error(r.status);try{localStorage.setItem('dw_last',String(Date.now()));}catch(x){}done(body);})
     .catch(function(){b.disabled=false;b.textContent='접수하기';err('전송하지 못했습니다. 인터넷 연결을 확인하고 다시 눌러주세요.'+(CFG.PHONE?' 급하면 '+CFG.PHONE+'로 전화 주세요.':''));});
   });
+  function qrMake(text){
+  const utf=unescape(encodeURIComponent(text));const data=[];for(let i=0;i<utf.length;i++)data.push(utf.charCodeAt(i));
+  const VT=[null,{n:26,d:16,b:1},{n:44,d:28,b:1},{n:70,d:44,b:1},{n:100,d:64,b:2},{n:134,d:86,b:2},{n:172,d:108,b:4}];
+  let v=1;while(v<=6&&data.length>VT[v].d-2)v++;if(v>6)return null;
+  const {n,d,b}=VT[v];
+  const bits=[];const put=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push((val>>i)&1);};
+  put(4,4);put(data.length,8);data.forEach(x=>put(x,8));
+  put(0,Math.min(4,d*8-bits.length));while(bits.length%8)bits.push(0);
+  const cw=[];for(let i=0;i<bits.length;i+=8){let x=0;for(let j=0;j<8;j++)x=x*2+bits[i+j];cw.push(x);}
+  for(let pad=0xEC;cw.length<d;pad^=0xEC^0x11)cw.push(pad);
+  const EXP=new Array(512),LOG=new Array(256);let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11D;}for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
+  const mul=(a,c)=>a&&c?EXP[LOG[a]+LOG[c]]:0;
+  const el=(n-d)/b;let gen=[1];for(let i=0;i<el;i++){const nx=new Array(gen.length+1).fill(0);for(let j=0;j<gen.length;j++){nx[j]^=gen[j];nx[j+1]^=mul(gen[j],EXP[i]);}gen=nx;}
+  const bs=d/b,db=[],eb=[];
+  for(let k=0;k<b;k++){const blk=cw.slice(k*bs,(k+1)*bs);db.push(blk);const rem=new Array(el).fill(0);
+    blk.forEach(byte=>{const f=byte^rem.shift();rem.push(0);for(let j=0;j<el;j++)rem[j]^=mul(gen[j+1],f);});eb.push(rem);}
+  const fin=[];for(let i=0;i<bs;i++)db.forEach(bl=>fin.push(bl[i]));for(let i=0;i<el;i++)eb.forEach(bl=>fin.push(bl[i]));
+  const size=17+4*v;const M=[],F=[];for(let i=0;i<size;i++){M.push(new Array(size).fill(false));F.push(new Array(size).fill(false));}
+  const sf=(xx,yy,val)=>{if(xx<0||yy<0||xx>=size||yy>=size)return;M[yy][xx]=!!val;F[yy][xx]=true;};
+  for(let i=0;i<size;i++){sf(6,i,i%2===0);sf(i,6,i%2===0);}
+  const finder=(cx,cy)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const dist=Math.max(Math.abs(dx),Math.abs(dy));sf(cx+dx,cy+dy,dist!==2&&dist!==4);}};
+  finder(3,3);finder(size-4,3);finder(3,size-4);
+  if(v>=2){const ap=[6,[0,0,0,0,0,0,0][0]+({2:18,3:22,4:26,5:30,6:34})[v]];
+    for(const a of ap)for(const c of ap){if(a===6||c===6)continue;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)sf(a+dx,c+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);}}
+  const fmt=mask=>{const dd=(0<<3)|mask;let rem=dd;for(let i=0;i<10;i++)rem=(rem<<1)^((rem>>>9)*0x537);const bt=((dd<<10)|rem)^0x5412;const g=i=>((bt>>>i)&1)===1;
+    for(let i=0;i<=5;i++)sf(8,i,g(i));sf(8,7,g(6));sf(8,8,g(7));sf(7,8,g(8));for(let i=9;i<15;i++)sf(14-i,8,g(i));
+    for(let i=0;i<8;i++)sf(size-1-i,8,g(i));for(let i=8;i<15;i++)sf(8,size-15+i,g(i));sf(8,size-8,true);};
+  fmt(0);
+  let i=0;const total=fin.length*8;
+  for(let right=size-1;right>=1;right-=2){if(right===6)right=5;
+    for(let vert=0;vert<size;vert++)for(let j=0;j<2;j++){const xx=right-j,up=((right+1)&2)===0,yy=up?size-1-vert:vert;
+      if(!F[yy][xx]&&i<total){M[yy][xx]=((fin[i>>>3]>>>(7-(i&7)))&1)===1;i++;}}}
+  const MF=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const apply=m=>{for(let y=0;y<size;y++)for(let xx=0;xx<size;xx++)if(!F[y][xx]&&MF[m](xx,y))M[y][xx]=!M[y][xx];};
+  const pen=()=>{let p=0;for(let y=0;y<size;y++){let run=1;for(let xx=1;xx<size;xx++){if(M[y][xx]===M[y][xx-1]){run++;if(run===5)p+=3;else if(run>5)p++;}else run=1;}}
+    for(let xx=0;xx<size;xx++){let run=1;for(let y=1;y<size;y++){if(M[y][xx]===M[y-1][xx]){run++;if(run===5)p+=3;else if(run>5)p++;}else run=1;}}
+    for(let y=0;y<size-1;y++)for(let xx=0;xx<size-1;xx++){const c=M[y][xx];if(c===M[y][xx+1]&&c===M[y+1][xx]&&c===M[y+1][xx+1])p+=3;}
+    let dark=0;M.forEach(r=>r.forEach(c=>{if(c)dark++;}));p+=Math.floor(Math.abs(dark*20-size*size*10)/(size*size))*10;return p;};
+  let best=0,bp=1e9;for(let m=0;m<8;m++){apply(m);fmt(m);const p=pen();if(p<bp){bp=p;best=m;}apply(m);}
+  apply(best);fmt(best);return M;
+}
+  function qrCanvas(url,px,caption){const M=qrMake(url);if(!M)return null;const q=4,n=M.length,sc=Math.max(2,Math.floor(px/(n+2*q))),W=sc*(n+2*q),cap=caption?Math.round(W*0.16):0;
+  const c=document.createElement("canvas");c.width=W;c.height=W+cap;const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.fillStyle="#33261a";
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(M[y][x])g.fillRect((x+q)*sc,(y+q)*sc,sc,sc);
+  if(caption){g.font="bold "+Math.round(cap*0.45)+"px sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(caption,W/2,W+cap*0.42);}return c;}
+  function shMsg(){var u=location.origin+location.pathname.replace(/index\.html$/,'');if(!/^https?:/.test(location.protocol))u='https://cdh7657.github.io/nusu/';return {u:u,m:'집 수리·관리 일이 생기면 대원설비건축 집수리예약에서 편하게 접수하세요.'};}
+  function smsUrl(){var x=shMsg(),ios=/iPhone|iPad|iPod/.test(navigator.userAgent);return 'sms:'+(ios?'&':'?')+'body='+encodeURIComponent(x.m+'\n'+x.u);}
+  function sms(){location.href=smsUrl();}
+  function share(){var x=shMsg();
+    if(navigator.share){navigator.share({title:'집수리예약',text:x.m,url:x.u}).catch(function(e){if(!e||e.name!=='AbortError')sms();});return;}
+    sms();}
+  function qrSend(){var x=shMsg(),c=qrCanvas(x.u,800,'대원설비건축 · 집수리예약');if(!c)return;
+    var o=document.createElement('div');o.className='sheet';
+    o.innerHTML='<div class="in" style="align-items:center;text-align:center"><div class="top" style="width:100%"><h2>집수리예약</h2><button type="button" class="btn ghost" id="qrX">닫기</button></div><img alt="QR코드" style="width:100%;max-width:320px;border-radius:8px"><p class="sub" style="margin:0;font-size:16px"><b>상대방이 폰 카메라로 이 QR을 비추면 열립니다.</b></p><button type="button" class="btn ghost" id="qrS" hidden>QR 이미지 보내기 (카톡·문자)</button></div>';
+    o.querySelector('img').src=c.toDataURL('image/png');
+    o.querySelector('#qrX').onclick=function(){o.remove();};o.onclick=function(e){if(e.target===o)o.remove();};
+    document.body.appendChild(o);
+    if(c.toBlob&&navigator.share&&window.File&&navigator.canShare){c.toBlob(function(bl){if(!bl)return;var f=new File([bl],'집수리예약_QR.png',{type:'image/png'});
+      if(navigator.canShare({files:[f]})){var sb=o.querySelector('#qrS');sb.hidden=false;sb.onclick=function(){navigator.share({files:[f],text:x.m+'\n'+x.u}).catch(function(){});};}},'image/png');}}
+  $('shB').onclick=share;$('smB').href=smsUrl();$('qrB').onclick=qrSend;
   function err(t){var p=$('cErr');p.textContent=t;p.hidden=false;p.scrollIntoView({block:'center'});}
   function done(b){
     var f=$('f');var d=document.createElement('div');d.className='done';
-    d.innerHTML='<h2>접수됐습니다</h2><p></p><p style="color:var(--muted);font-size:14px">확인 후 문자나 전화로 연락드립니다.</p>';
+    d.innerHTML='<h2>접수됐습니다</h2><p></p><p style="color:var(--muted);font-size:14px">확인 후 문자나 전화로 연락드립니다.</p><button type="button" class="btn ghost" id="shD">이웃·친구에게 알려주기</button><a class="btn ghost" id="smD" href="sms:" style="text-decoration:none">문자로 보내기</a><button type="button" class="btn ghost" id="qrD">QR 보여주기</button>';
     d.querySelector('p').textContent=b.name+'님, '+b.work+' · 희망일 '+b.dates.map(dshow).join(', ');
-    f.replaceWith(d);scrollTo({top:0,behavior:'smooth'});
+    f.replaceWith(d);var sb=$('shB');if(sb)sb.parentNode.hidden=true;d.querySelector('#shD').onclick=share;d.querySelector('#smD').href=smsUrl();d.querySelector('#qrD').onclick=qrSend;scrollTo({top:0,behavior:'smooth'});
   }
 })();
 </script></body></html>
