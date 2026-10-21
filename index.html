@@ -61,6 +61,9 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
 .svc3 button{padding:16px 4px;font-size:16px;line-height:1.3}
 .svc5 button{padding:12px 6px;font-size:15px;font-weight:500}
 .svc3 button.on,.svc5 button.on{border-color:var(--deep);background:var(--ice);color:var(--deep);font-weight:700;box-shadow:inset 0 0 0 1px var(--deep)}
+.phs{display:flex;flex-wrap:wrap;gap:8px}.phs:empty{display:none}
+.phs .ph{position:relative;width:88px;height:88px}.phs img{width:88px;height:88px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.phs button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:var(--deep);color:var(--bg);font-size:15px;line-height:1;cursor:pointer}
 .busy{margin:0;font-size:14px;color:var(--alert)}
 .card-id{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;align-self:flex-start}
 .card-id img{display:block;height:auto}
@@ -97,13 +100,16 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
       <div class="addr"><input id="cAddr" type="text" readonly placeholder="주소 검색을 눌러주세요"><button type="button" id="addrBtn">주소 검색</button></div>
       <input id="cAddr2" type="text" maxlength="100" placeholder="상세 주소 (동·호수, 집 위치 설명)" aria-label="상세 주소"></div>
     <div class="field"><label for="cMemo">상황을 간단하게 설명해주세요</label><textarea id="cMemo" maxlength="1000" placeholder="예) 보일러실 배관에서 물이 떨어져요. 어제부터 시작됐어요."></textarea></div>
+    <div class="field"><label>사진 (선택, 최대 3장)</label><p class="sub">상황을 보여주는 사진이 있으면 출동 준비에 큰 도움이 됩니다.</p>
+      <div class="phs" id="phs"></div>
+      <label class="btn ghost" for="cPh" id="phAdd" style="cursor:pointer">+ 사진 추가</label><input id="cPh" type="file" accept="image/*" multiple hidden></div>
     <div class="field"><span class="lbl">서비스 받으실 날짜와 시간을 골라주세요 (최대 5개)</span><span class="sub" style="font-size:14px">이미 일정이 있는 시간은 안내해 드립니다. 그래도 고르실 수 있습니다. 정확한 도착 시간은 확인 후 문자나 전화로 알려드립니다.</span>
       <div id="cands" style="display:flex;flex-direction:column;gap:6px"></div>
       <button type="button" class="btn ghost" id="addCand">+ 날짜 추가</button></div>
     <div class="hp" aria-hidden="true"><label for="cWeb">웹사이트</label><input id="cWeb" type="text" tabindex="-1" autocomplete="off"></div>
     <div>
       <label class="chk"><input id="cOk" type="checkbox"><span>개인정보 수집·이용에 동의합니다 (필수)</span></label>
-      <details><summary>수집 내용 보기</summary><p>수집 항목: 성함, 전화번호, 주소, 상황 설명, 희망 날짜·시간. 이용 목적: 접수 확인과 일정 연락, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.</p></details>
+      <details><summary>수집 내용 보기</summary><p>수집 항목: 성함, 전화번호, 주소, 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 접수 확인과 일정 연락, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.</p></details>
     </div>
     <p class="err" id="cErr" role="alert" hidden></p>
     <button type="submit" class="btn hot" id="cSend">접수하기</button>
@@ -210,9 +216,15 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
     $('cErr').hidden=true;
     var body={name:$('cName').value.trim(),phone:tel,addr:$('cAddr').value.trim(),addr2:$('cAddr2').value.trim(),work:svc,note:$('cMemo').value.trim(),
       dates:c.map(dlabel),consent:true,ts:Date.now(),status:'new'};
+    if(PH.length)body.photos=PH.slice();
     var b=$('cSend');b.disabled=true;b.textContent='보내는 중…';
-    fetch(CFG.DB+'/requests.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-    .then(function(r){if(!r.ok)throw new Error(r.status);try{localStorage.setItem('dw_last',String(Date.now()));}catch(x){}done(body);})
+    var dropped=false;
+    function post(bd){return fetch(CFG.DB+'/requests.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(bd)}).then(function(r){if(!r.ok)throw new Error(r.status);});}
+    post(body).catch(function(e){
+      if(!body.photos)throw e;
+      var b2=JSON.parse(JSON.stringify(body));delete b2.photos;b2.note=(b2.note?b2.note+'\n':'')+'(사진 '+body.photos.length+'장 첨부 실패)';
+      return post(b2).then(function(){dropped=true;body=b2;});})
+    .then(function(){try{localStorage.setItem('dw_last',String(Date.now()));}catch(x){}done(body,dropped);})
     .catch(function(){b.disabled=false;b.textContent='접수하기';err('전송하지 못했습니다. 인터넷 연결을 확인하고 다시 눌러주세요.'+(CFG.PHONE?' 급하면 '+CFG.PHONE+'로 전화 주세요.':''));});
   });
   function qrMake(text){
@@ -275,10 +287,16 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
     if(c.toBlob&&navigator.share&&window.File&&navigator.canShare){c.toBlob(function(bl){if(!bl)return;var f=new File([bl],'집수리예약_QR.png',{type:'image/png'});
       if(navigator.canShare({files:[f]})){var sb=o.querySelector('#qrS');sb.hidden=false;sb.onclick=function(){navigator.share({files:[f],text:x.m+'\n'+x.u}).catch(function(){});};}},'image/png');}}
   $('shB').onclick=share;$('smB').href=smsUrl();$('qrB').onclick=qrSend;
+  var PH=[];
+  function phDraw(){var b=$('phs');b.innerHTML='';PH.forEach(function(d,i){var w=document.createElement('div');w.className='ph';var im=new Image();im.src=d;im.alt='첨부 사진';var x=document.createElement('button');x.type='button';x.textContent='×';x.setAttribute('aria-label','사진 빼기');x.onclick=function(){PH.splice(i,1);phDraw();};w.appendChild(im);w.appendChild(x);b.appendChild(w);});$('phAdd').hidden=PH.length>=3;}
+  function phRead(f){return new Promise(function(ok){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var m=1000,w=im.width,h=im.height,k=Math.min(1,m/Math.max(w,h));var c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',0.7));};im.onerror=function(){ok(null);};im.src=r.result;};r.onerror=function(){ok(null);};r.readAsDataURL(f);});}
+  $('cPh').addEventListener('change',function(){var fs=[].slice.call(this.files||[]).slice(0,3-PH.length);var self=this;
+    fs.reduce(function(p,f){return p.then(function(){return phRead(f).then(function(d){if(d)PH.push(d);});});},Promise.resolve()).then(function(){self.value='';phDraw();});});
   function err(t){var p=$('cErr');p.textContent=t;p.hidden=false;p.scrollIntoView({block:'center'});}
-  function done(b){
+  function done(b,dropped){
     var f=$('f');var d=document.createElement('div');d.className='done';
     d.innerHTML='<h2>접수됐습니다</h2><p></p><p style="color:var(--muted);font-size:14px">확인 후 문자나 전화로 연락드립니다.</p><button type="button" class="btn ghost" id="shD">이웃·친구에게 알려주기</button><a class="btn ghost" id="smD" href="sms:" style="text-decoration:none">문자로 보내기</a><button type="button" class="btn ghost" id="qrD">QR 보여주기</button>';
+    if(dropped){var wp=document.createElement('p');wp.style.cssText='color:var(--alert);font-size:14px';wp.textContent='사진은 전송되지 않았습니다. 접수는 완료됐으니 사진은 문자로 보내 주세요.';d.insertBefore(wp,d.querySelector('button'));}
     d.querySelector('p').textContent=b.name+'님, '+b.work+' · 희망일 '+b.dates.map(dshow).join(', ');
     f.replaceWith(d);var sb=$('shB');if(sb)sb.parentNode.hidden=true;d.querySelector('#shD').onclick=share;d.querySelector('#smD').href=smsUrl();d.querySelector('#qrD').onclick=qrSend;scrollTo({top:0,behavior:'smooth'});
   }
