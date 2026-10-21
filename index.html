@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
+<meta name="page-ver" content="20261022b">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -135,6 +136,17 @@ details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:v
 </div>
 
 <script>
+/* 최신 버전 자동 확인: 설치된 앱이나 저장된 화면이 예전 것이면 새로 불러옵니다 */
+(function(){try{
+  var cur=(document.querySelector('meta[name="page-ver"]')||{}).content;if(!cur||!/^https?:/.test(location.protocol))return;
+  var u=location.href.split('#')[0];
+  fetch(u,{cache:'reload'}).then(function(r){return r.ok?r.text():''}).then(function(t){
+    var m=/<meta name="page-ver" content="([^"]+)"/.exec(t);if(!m||m[1]===cur)return;
+    var k='ver_'+m[1];try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');}catch(e){return;}
+    location.reload();
+  }).catch(function(){});
+}catch(e){}})();
+
 (function(){
   var CFG={DB:"https://daewon-booking-default-rtdb.asia-southeast1.firebasedatabase.app",PHONE:""};
   var $=function(i){return document.getElementById(i);};
