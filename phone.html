@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전화번호 인증 테스트</title>
+<style>
+:root{--bg:#f7f0e1;--card:#fffdf8;--ink:#33261a;--muted:#7a6a58;--line:#e4d6b8;--deep:#33261a;--hot:#c4571f;--ok:#2d6a3e;--bad:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1812;--card:#272018;--ink:#f3e9d6;--muted:#b3a58f;--line:#43382b;--deep:#f3e9d6;--hot:#e0743a;--ok:#7bc58f;--bad:#f2867f}}
+[hidden]{display:none!important}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Noto Sans KR",sans-serif}
+.wrap{max-width:520px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column;gap:14px}
+h1{font-size:22px;margin:4px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+label{font-weight:700}input{font:inherit;width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.btn{font:inherit;font-weight:700;border-radius:12px;padding:13px;border:1.5px solid var(--deep);background:var(--deep);color:var(--bg);width:100%;cursor:pointer}
+.btn.hot{background:var(--hot);border-color:var(--hot);color:#fff}.btn.ghost{background:transparent;color:var(--deep)}.btn:disabled{opacity:.55}
+.sub{margin:0;color:var(--muted);font-size:14px}.ok{color:var(--ok);font-weight:700}.err{color:var(--bad);margin:0;overflow-wrap:anywhere}
+pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;color:var(--muted)}
+</style></head><body><div class="wrap">
+<h1>전화번호 인증 테스트</h1>
+<p class="sub">집수리예약에 넣기 전에, 인증번호 문자가 오고 로그인이 되는지 확인하는 테스트 화면입니다.</p>
+<div class="card" id="stIn">
+  <label for="ph">휴대폰 번호</label>
+  <input id="ph" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000">
+  <button class="btn hot" id="send" type="button">인증번호 받기</button>
+  <div id="codeBox" hidden style="flex-direction:column;gap:12px;display:flex">
+    <label for="cd">문자로 온 인증번호 6자리</label>
+    <input id="cd" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+    <button class="btn" id="verify" type="button">확인</button>
+  </div>
+  <p class="err" id="er" hidden></p>
+</div>
+<div class="card" id="stOk" hidden>
+  <p class="ok">✔ 인증되었습니다</p>
+  <pre id="info"></pre>
+  <button class="btn ghost" id="out" type="button">로그아웃</button>
+</div>
+<div class="card"><b>환경 정보</b><pre id="env"></pre></div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var HINT={'auth/billing-not-enabled':'Blaze(종량제) 전환이 아직 안 됐습니다.','auth/unauthorized-domain':'승인된 도메인에 cdh7657.github.io 가 없습니다.','auth/operation-not-allowed':'콘솔에서 전화 로그인이 꺼져 있거나, 지역 정책에서 한국이 막혀 있습니다.','auth/too-many-requests':'요청이 너무 많았습니다. 잠시 후 다시 시도하세요.','auth/invalid-phone-number':'번호 형식이 올바르지 않습니다.','auth/invalid-verification-code':'인증번호가 틀렸습니다.','auth/code-expired':'인증번호 시간이 지났습니다. 다시 받아 주세요.','auth/captcha-check-failed':'로봇 확인에 실패했습니다.','auth/network-request-failed':'인터넷 연결을 확인해 주세요.'};
+  function err(e){var c=(e&&e.code)||'';var p=$('er');p.hidden=false;p.textContent=(HINT[c]||'오류가 났습니다.')+(c?' ['+c+']':(e&&e.message?' '+e.message:''));}
+  function clr(){$('er').hidden=true;}
+  if(typeof firebase==='undefined'){err({message:'Firebase 스크립트를 불러오지 못했습니다. 인터넷을 확인하고, 앱 안의 미리보기가 아니라 크롬 주소창에서 열어 주세요.'});$('stOk').hidden=true;return;}
+  firebase.initializeApp({apiKey:'AIzaSyB8NWjchZimJNbX1Nn_bNcIW234afMWDeE',authDomain:'daewon-booking.firebaseapp.com',projectId:'daewon-booking'});
+  var auth=firebase.auth();auth.languageCode='ko';
+  var st=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;
+  $('env').textContent='설치된 앱으로 실행: '+(st?'예':'아니오 (브라우저)')+'\n'+navigator.userAgent;
+  function e164(s){var d=String(s).replace(/\D/g,'');if(d.indexOf('82')===0)d=d.slice(2);if(d.charAt(0)==='0')d=d.slice(1);return d.length>=9&&d.length<=10?'+82'+d:'';}
+  var verifier=null,conf=null;
+  function mkVerifier(){try{if(verifier)verifier.clear();}catch(x){}verifier=new firebase.auth.RecaptchaVerifier('send',{size:'invisible'});return verifier;}
+  $('send').onclick=function(){
+    clr();var n=e164($('ph').value);if(!n){err({code:'auth/invalid-phone-number'});return;}
+    var b=$('send');b.disabled=true;b.textContent='보내는 중…';
+    auth.signInWithPhoneNumber(n,mkVerifier()).then(function(c){conf=c;$('codeBox').hidden=false;b.textContent='인증번호 다시 받기';b.disabled=false;$('cd').focus();})
+    .catch(function(e){b.disabled=false;b.textContent='인증번호 받기';err(e);try{verifier.clear();}catch(x){}verifier=null;});
+  };
+  $('verify').onclick=function(){
+    clr();if(!conf){return;}var v=$('verify');v.disabled=true;
+    conf.confirm($('cd').value.trim()).then(function(){v.disabled=false;}).catch(function(e){v.disabled=false;err(e);});
+  };
+  $('out').onclick=function(){auth.signOut();};
+  auth.onAuthStateChanged(function(u){
+    $('stIn').hidden=!!u;$('stOk').hidden=!u;
+    if(u)$('info').textContent='번호: '+u.phoneNumber+'\n사용자 ID: '+u.uid+'\n처음 가입: '+(u.metadata&&u.metadata.creationTime)+'\n마지막 로그인: '+(u.metadata&&u.metadata.lastSignInTime);
+  });
+})();
+</script></body></html>
