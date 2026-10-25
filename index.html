@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261025f">
+<meta name="page-ver" content="20261025h">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -319,14 +319,16 @@ var busy={};
 function loadBusy(){return fetch(DB_URL+"/busy.json").then(function(r){return r.ok?r.json():null;}).then(function(j){busy=j||{};}).catch(function(){});}
 loadBusy();
 function hopts(b){b=b||{};return '<option value="시간 협의">시간 협의 (아무 때나)</option>'+HRS.map(function(x){return '<option value="'+x+':00">'+x+':00'+(b[x]?' (다른 일정 있음)':'')+'</option>';}).join("");}
-function houseChips(sel,id){return '<div class="chips" id="'+(id||"bkH")+'">'+S.houses.map(function(h){return '<button type="button" data-h="'+esc(h.id)+'" class="'+(h.id===sel?"on":"")+'">'+esc(h.name)+'</button>';}).join("")+(S.houses.length<MAXH?'<button type="button" data-hnew="1">+ 다른 집</button>':'')+'</div>';}
-var BK={svc:"",sel:"",memo:"",PH:[],cands:null,tel:null};
-function bkReset(){BK={svc:"",sel:"",memo:"",PH:[],cands:null,tel:null};}
+function houseChips(sel,id,proxy){return '<div class="chips" id="'+(id||"bkH")+'">'+S.houses.map(function(h){return '<button type="button" data-h="'+esc(h.id)+'" class="'+(!BK.proxy||!proxy?(h.id===sel?"on":""):"")+'">'+esc(h.name)+'</button>';}).join("")+(proxy?'<button type="button" data-proxy="1" class="'+(BK.proxy?"on":"")+'">다른 집</button>':'')+'</div>';}
+var BK={svc:"",sel:"",memo:"",PH:[],cands:null,tel:null,proxy:false,paddr:"",paddr2:""};
+function bkReset(){BK={svc:"",sel:"",memo:"",PH:[],cands:null,tel:null,proxy:false,paddr:"",paddr2:""};}
 function svcBtns(list){return list.map(function(n){return '<button type="button" data-svc="'+esc(n)+'" class="'+(n===BK.svc?"on":"")+'">'+esc(n)+'</button>';}).join("");}
 function bkSel(){return BK.sel&&house(BK.sel)?BK.sel:(mainHouse()||{}).id;}
 function vBook(){var s='<div><h1>접수</h1><p class="sub">고장·수리 접수와 예약을 여기서 합니다.</p></div><form id="bkF" class="box" novalidate>';
-  s+='<div class="field"><span class="lbl">어느 집인가요?</span>'+houseChips(bkSel())+'<p class="sub" id="bkHi"></p></div>';
-  s+=telField("bkTel","연락받을 번호",BK.tel!=null?BK.tel:houseTel(house(bkSel())),"이 집에 정해 둔 번호입니다. 이번에 다른 분이 받으시면 바꿔 적으세요.");
+  s+='<div class="field"><span class="lbl">어느 집인가요?</span>'+houseChips(bkSel(),"bkH",true)+(BK.proxy?'':'<p class="sub" id="bkHi"></p>')+'</div>';
+  if(BK.proxy){s+='<div class="box soft" style="gap:10px"><p class="sub">가족·이웃 등 다른 집 일을 대신 접수합니다. 이 주소는 우리 집에 저장되지 않습니다.</p><div class="field"><label for="pAddr">주소</label><div class="addr"><input id="pAddr" type="text" readonly placeholder="주소 검색을 눌러주세요" value="'+esc(BK.paddr)+'"><button type="button" id="pAddrBtn">주소 검색</button></div><input id="pAddr2" type="text" maxlength="100" placeholder="상세 주소 (동·호수, 집 위치 설명)" aria-label="상세 주소" value="'+esc(BK.paddr2)+'"></div>'
+    +telField("bkTel","현장에서 연락받을 분 번호",BK.tel!=null?BK.tel:"","현장에서 만날 분 번호를 적으세요. 비워 두면 내 번호로 연락드립니다.")+'</div>';}
+  else s+=telField("bkTel","연락받을 번호",BK.tel!=null?BK.tel:houseTel(house(bkSel())),"이 집에 정해 둔 번호입니다. 이번에 다른 분이 받으시면 바꿔 적으세요.");
   s+='<div class="field"><span class="lbl" id="svcLbl">어떤 도움이 필요하세요?</span><div class="svc3" id="svc3">'+svcBtns(SVC3)+'</div><div class="svc5" id="svc5">'+svcBtns(SVC5)+'</div></div>';
   s+='<div class="field"><label for="bkMemo">상황을 간단하게 설명해주세요</label><textarea id="bkMemo" maxlength="1000" placeholder="예) 보일러실 배관에서 물이 떨어져요. 어제부터 시작됐어요.">'+esc(BK.memo)+'</textarea></div>';
   s+='<div class="field"><span class="lbl">사진 (선택, 최대 3장)</span><p class="sub">상황을 보여주는 사진이 있으면 출동 준비에 큰 도움이 됩니다.</p><div class="phs" id="phs"></div><label class="btn ghost" for="bkPh" id="phAdd" style="cursor:pointer">+ 사진 추가</label><input id="bkPh" type="file" accept="image/*" multiple hidden></div>';
@@ -339,8 +341,11 @@ function vBook(){var s='<div><h1>접수</h1><p class="sub">고장·수리 접수
   return s;}
 function bookWire(){var f=$("#bkF");if(!f)return;
   var hi=function(){var p=$("#bkHi"),H=house(bkSel());if(p)p.textContent=H?(H.addr||"")+(H.addr2?" "+H.addr2:""):"";};hi();
-  var hc=$("#bkH");if(hc)hc.onclick=function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.hnew){houseSheet(null,function(h){BK.sel=h.id;BK.tel=null;render();});return;}
-    BK.sel=b.dataset.h;BK.tel=null;$("#bkTel").value=houseTel(house(BK.sel));[].forEach.call(hc.children,function(x){x.classList.toggle("on",x===b);});hi();};
+  var hc=$("#bkH");if(hc)hc.onclick=function(e){var b=e.target.closest("button");if(!b)return;
+    if(b.dataset.proxy){if(!BK.proxy){BK.proxy=true;BK.tel=null;render();}return;}
+    BK.sel=b.dataset.h;BK.tel=null;if(BK.proxy){BK.proxy=false;render();return;}$("#bkTel").value=houseTel(house(BK.sel));[].forEach.call(hc.children,function(x){x.classList.toggle("on",x===b);});hi();};
+  var pb=$("#pAddrBtn");if(pb)pb.onclick=function(){addrSearch(function(a){$("#pAddr").value=a;BK.paddr=a;$("#pAddr2").focus();});};
+  var p2=$("#pAddr2");if(p2)p2.addEventListener("input",function(){BK.paddr2=this.value;});
   [].forEach.call(f.querySelectorAll("[data-svc]"),function(b){b.onclick=function(){BK.svc=b.dataset.svc;[].forEach.call(f.querySelectorAll("[data-svc]"),function(x){x.classList.toggle("on",x===b);});};});
   $("#bkMemo").addEventListener("input",function(){BK.memo=this.value;});
   $("#bkTel").addEventListener("input",function(){BK.tel=this.value;});
@@ -364,13 +369,13 @@ function bookWire(){var f=$("#bkF");if(!f)return;
   $("#bkPh").addEventListener("change",function(){var self=this,fs=[].slice.call(this.files||[]).slice(0,3-BK.PH.length);fs.reduce(function(p,fl){return p.then(function(){return shrink(fl,1000,0.7).then(function(d){if(d)BK.PH.push(d);});});},Promise.resolve()).then(function(){self.value="";phDraw();});});
   f.addEventListener("submit",function(e){e.preventDefault();if($("#bkWeb").value)return;
     saveC();var c=BK.cands.filter(function(x){return x.date;});var miss=[];var tel=$("#bkTel").value.trim();
-    if(!BK.svc)miss.push("필요한 도움");if(!c.length)miss.push("날짜");
+    if(BK.proxy&&!BK.paddr)miss.push("다른 집 주소");if(!BK.svc)miss.push("필요한 도움");if(!c.length)miss.push("날짜");
     if(miss.length){ferr("bkErr",miss.join(", ")+"을(를) 골라 주세요.");return;}
     if(tel&&dg(tel).length<9){ferr("bkErr","연락받을 번호를 확인해 주세요.");return;}
-    var H=house(bkSel());var contact=!dg(tel)||dg(tel)===dg(S.me.phone)?"":fmtTel(tel);
+    var H=BK.proxy?{id:"",name:"대리 접수",label:"다른 집",addr:BK.paddr,addr2:(BK.paddr2||"").trim(),contactMe:true}:house(bkSel());var contact=!dg(tel)||dg(tel)===dg(S.me.phone)?"":fmtTel(tel);
     send({kind:"예약",work:BK.svc,note:BK.memo.trim(),dates:c.map(function(x){return x.date+" "+x.time;}),photos:BK.PH.slice(),contact:contact},H,$("#bkSend"),"bkErr");});}
 /* 점검 결과 등에서 "예약"을 누르면 접수 화면을 채워서 보여 줌 */
-function bookSheet(work,hid,note){if(work)BK.svc=work;if(hid&&house(hid)){BK.sel=hid;BK.tel=null;}if(note)BK.memo=note;closeSheet();S.tab="book";render();scrollTo(0,0);}
+function bookSheet(work,hid,note){if(work)BK.svc=work;if(hid&&house(hid)){BK.sel=hid;BK.tel=null;BK.proxy=false;}if(note)BK.memo=note;closeSheet();S.tab="book";render();scrollTo(0,0);}
 
 /* ---------- 문의 ---------- */
 function askSheet(note){var sel=(mainHouse()||{}).id;
@@ -380,7 +385,7 @@ function askSheet(note){var sel=(mainHouse()||{}).id;
    +'<div class="field"><span class="lbl">사진 (선택, 최대 3장)</span><div class="phs" id="akPhs"></div><label class="btn ghost" for="akPh" id="akAdd" style="cursor:pointer">+ 사진 추가</label><input id="akPh" type="file" accept="image/*" multiple hidden></div>'
    +'<p class="sub">답은 확인하는 대로 전화나 문자로 드립니다.</p><p class="err" id="akErr" hidden></p><button type="submit" class="btn hot" id="akSend">문의 보내기</button></form>');
   var PH=[];
-  var hc=$("#akH");if(hc)hc.onclick=function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.hnew){var q=$("#akMemo").value;houseSheet(null,function(){askSheet(q);});return;}sel=b.dataset.h;[].forEach.call(hc.children,function(x){x.classList.toggle("on",x===b);});};
+  var hc=$("#akH");if(hc)hc.onclick=function(e){var b=e.target.closest("button");if(!b||!b.dataset.h)return;sel=b.dataset.h;[].forEach.call(hc.children,function(x){x.classList.toggle("on",x===b);});};
   function phDraw(){var b=$("#akPhs");b.innerHTML="";PH.forEach(function(d,i){var w=document.createElement("div");w.className="ph";var im=new Image();im.src=d;var x=document.createElement("button");x.type="button";x.textContent="×";x.onclick=function(){PH.splice(i,1);phDraw();};w.appendChild(im);w.appendChild(x);b.appendChild(w);});$("#akAdd").hidden=PH.length>=3;}
   $("#akPh").addEventListener("change",function(){var self=this,fs=[].slice.call(this.files||[]).slice(0,3-PH.length);fs.reduce(function(p,f){return p.then(function(){return shrink(f,1000,0.7).then(function(d){if(d)PH.push(d);});});},Promise.resolve()).then(function(){self.value="";phDraw();});});
   $("#akF").addEventListener("submit",function(e){e.preventDefault();var q=$("#akMemo").value.trim();if(!q){ferr("akErr","궁금한 것을 적어 주세요.");return;}
@@ -407,7 +412,7 @@ function send(o,H,btn,errId){
    .catch(function(e){if(!full.photos)throw e;dropped=true;return post(noPh(full)).catch(function(){return post(noPh(basic));});})
    .then(function(res){try{localStorage.setItem("dw_last",String(Date.now()));}catch(x){}
      var first=!S.me;if(!S.me)S.me=me;S.consent=true;if(o.newHouse&&!house(o.newHouse.id))S.houses.push(o.newHouse);
-     S.reqs.push({id:(res&&res.name)||uid(),ts:full.ts,kind:o.kind,work:o.work,note:o.note,dates:o.dates,houseId:H?H.id:"",houseName:H?H.name:""});if(o.kind==="예약")bkReset();save();
+     S.reqs.push({id:(res&&res.name)||uid(),ts:full.ts,kind:o.kind,work:o.work,note:o.note,dates:o.dates,houseId:H?H.id:"",houseName:H?(H.label||H.name):""});if(o.kind==="예약")bkReset();save();
      closeSheet();S.tab="book";render();scrollTo(0,0);
      sheet(o.kind==="문의"?"문의를 보냈습니다":"접수됐습니다",'<div class="box ok"><p><b>'+esc(me.name)+'님, 접수됐습니다.</b></p><p>'+(o.kind==="문의"?"확인하는 대로 전화나 문자로 답을 드리겠습니다.":"일정을 확인한 뒤 방문 가능한 날짜와 시간으로 예약하고 결과를 알려 드리겠습니다.")+'</p>'+(dropped?'<p class="err">사진은 전송되지 않았습니다. 접수는 완료됐으니 사진은 문자로 보내 주세요.</p>':'')+'</div>'
        +(first?'<p class="sub">적어 주신 이름·전화번호'+(o.newHouse?'·주소는 "우리 집"으로':'는')+' 이 휴대폰에 저장했습니다. 다음부터는 다시 적지 않으셔도 됩니다.</p>':'')
@@ -483,7 +488,7 @@ function vMore(){var h='<h1>더보기</h1>';
   if(!STANDALONE)h+='<div class="box"><h2>앱처럼 쓰기</h2><p class="sub">바탕화면에 아이콘을 만들어 바로 열 수 있습니다.</p><button type="button" class="btn ghost" data-go="install">'+(INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):installEv?"홈 화면에 앱 추가":"방법 보기")+'</button></div>';
   h+='<div class="box"><h2>이웃·친구에게 알려주기</h2><div class="btns"><button type="button" class="btn sm" data-go="share">알려주기</button><a class="btn sm ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn sm ghost" data-go="qr">QR 보여주기</button></div></div>';
   h+='<details><summary>개인정보 안내</summary><p>이름·전화번호·주소와 예약·문의 내용은 접수 확인과 일정 연락, 작업을 맡는 업체(협력업체 포함) 전달에만 씁니다. 집 정보와 점검 기록·사진은 이 휴대폰에만 저장되고 보내지 않습니다.</p></details>';
-  h+='<p class="sub" style="text-align:center">대원설비건축 · 집수리예약 20261025f</p>';return h;}
+  h+='<p class="sub" style="text-align:center">대원설비건축 · 집수리예약 20261025h</p>';return h;}
 function meSheet(){sheet("내 정보",'<div class="field"><label for="mN">이름</label><input id="mN" value="'+esc(S.me.name)+'"></div><div class="field"><label for="mT">전화번호</label><input id="mT" type="tel" inputmode="tel" value="'+esc(S.me.phone)+'"></div><p class="err" id="mErr" hidden></p><button type="button" class="btn hot" id="mOk">저장</button>');
   $("#mOk").onclick=function(){var n=$("#mN").value.trim(),t=$("#mT").value.trim();if(!n||dg(t).length<9){ferr("mErr","이름과 전화번호를 확인해 주세요.");return;}S.me={name:n,phone:fmtTel(t)};save();closeSheet();render();toast("저장했습니다");};}
 function backup(){var data=JSON.stringify({app:"집수리예약",v:2,at:Date.now(),data:S});var name="집수리예약_백업_"+today()+".json";
