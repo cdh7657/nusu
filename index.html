@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261025p">
+<meta name="page-ver" content="20261027a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -364,12 +364,12 @@ function joinWire(){
     if(miss.length){ferr("jErr",miss.join(", ")+"을(를) 입력해 주세요.");return;}
     if(!$("#jOk").checked){ferr("jErr","개인정보 수집·이용에 동의해 주세요.");return;}
     joinMe={name:n,phone:fmtTel(t)};joinH=h;joinStep=2;render();scrollTo(0,0);});}
-function finishJoin(){S.me=joinMe;S.consent=true;S.houses=[joinH];joinStep=1;joinH=null;S.tab="home";save();render();scrollTo(0,0);toast("등록을 마쳤어요");}
+function finishJoin(){S.me=joinMe;S.consent=true;S.joinedAt=Date.now();S.houses=[joinH];joinStep=1;joinH=null;S.tab="home";save();render();scrollTo(0,0);toast("등록을 마쳤어요");memberSync();}
 
 /* ---------- 홈 (정보창) ---------- */
 function winterOn(){var d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m===11&&dd>=20)||m===12||m===1||m===2;}
 function leakDue(){var ym=today().slice(0,7);return S.houses.filter(function(h){return !S.checks.some(function(c){return c.kind==="누수"&&c.houseId===h.id&&String(c.date).slice(0,7)===ym;});});}
-var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
+var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 고객 관리(등록한 이름·전화번호), 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
 function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<p class="one2">우리 집 관리 이력을 직접 만들어 보세요.</p><button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+HERO_DECO+'</div>';
   var al='';
   if(winterOn())al+='<div class="box warn"><h3>겨울철 동파 대비</h3><p>열선이 설치된 곳은 전원이 연결되어 있는지, 정상적으로 작동하는지 확인해 주세요. 기온이 크게 떨어지는 날에는 수도꼭지를 조금 틀어 두면 동파를 막을 수 있어요.</p></div>';
@@ -580,16 +580,16 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261025p</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261027a</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
-function privacySheet(){sheet("개인정보 안내",'<p>이름·전화번호와 등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 대원설비건축에 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
+function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
 function meSheet(){
   sheet("개인정보 수정",'<div class="field"><label for="mN">이름</label><input id="mN" autocomplete="name" value="'+esc(S.me.name)+'"></div><div class="field"><label for="mT">전화번호</label><input id="mT" type="tel" inputmode="tel" value="'+esc(S.me.phone)+'"></div><p class="err" id="mErr" hidden></p><button type="button" class="btn" id="mOk">이름·전화번호 저장</button>'
    +'<div class="field"><span class="lbl">등록한 집</span><p class="sub">집마다 이름·주소·연락받을 번호를 고칠 수 있어요.</p></div><div class="list" style="margin:0 -18px">'+S.houses.map(function(H){return '<div class="item"><span class="m"><span class="t">'+esc(H.name)+'</span><span class="s" style="display:block">'+esc((H.addr||"")+(H.addr2?" "+H.addr2:""))+'</span><span class="s" style="display:block">연락: '+esc(H.contactMe===false&&H.contact?fmtTel(H.contact):"내 번호")+'</span></span><button type="button" class="btn sm ghost" data-hedit2="'+esc(H.id)+'">수정</button></div>';}).join("")+'</div>'
    +(S.houses.length<MAXH?'<button type="button" class="btn ghost" data-hadd2="1">+ 집 추가</button>':'')
    +'<div class="field" style="margin-top:8px"><span class="lbl">내 정보 지우기</span><p class="sub">이 휴대폰에 저장된 이름·전화번호·집 정보·점검 기록을 모두 지워요. 지우기 전에 필요하면 백업해 두세요.</p></div><button type="button" class="btn ghost" id="mWipe" style="color:var(--danger);border-color:var(--danger)">이 휴대폰의 내 정보 모두 지우기</button>');
-  $("#mOk").onclick=function(){var n=$("#mN").value.trim(),t=$("#mT").value.trim();if(!n||dg(t).length<9){ferr("mErr","이름과 전화번호를 확인해 주세요.");return;}S.me={name:n,phone:fmtTel(t)};save();render();meSheet();toast("저장했어요");};
+  $("#mOk").onclick=function(){var n=$("#mN").value.trim(),t=$("#mT").value.trim();if(!n||dg(t).length<9){ferr("mErr","이름과 전화번호를 확인해 주세요.");return;}S.me={name:n,phone:fmtTel(t)};save();render();meSheet();toast("저장했어요");memberSync();};
   [].forEach.call(document.querySelectorAll("[data-hedit2]"),function(b){b.onclick=function(){houseSheet(b.dataset.hedit2,function(){meSheet();});};});
   var ad=document.querySelector("[data-hadd2]");if(ad)ad.onclick=function(){houseSheet(null,function(){meSheet();});};
   $("#mWipe").onclick=function(){var b=$("#mWipe");if(!b.dataset.arm){b.dataset.arm="1";b.textContent="한 번 더 누르면 모두 지워요";return;}try{localStorage.removeItem(KEY);}catch(e){}S=blank();bkReset();S.tab="home";closeSheet();render();scrollTo(0,0);toast("내 정보를 모두 지웠어요");};}
@@ -598,7 +598,7 @@ function backup(){var data=JSON.stringify({app:"집수리예약",v:2,at:Date.now
   try{var f=new File([data],name,{type:"application/json"});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"집수리예약 백업",text:"집수리예약 백업 파일입니다. 새 폰에서 \"백업 불러오기\"로 여세요."}).catch(function(){});return;}}catch(e){}
   var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);toast("백업 파일을 저장했어요 (다운로드 폴더)");}
 function pickRestore(){var i=document.createElement("input");i.type="file";i.accept=".json,application/json";i.onchange=function(){var f=i.files&&i.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result);var d=j&&j.data;if(!d||d.v!==2||!d.me)throw 0;
-      if(S.me&&!confirm("지금 휴대폰의 내용을 백업 내용으로 바꿀까요?"))return;S=d;S.tab="home";save();render();toast("백업을 불러왔어요");}catch(e){toast("집수리예약 백업 파일이 아니에요");}};r.readAsText(f);};i.click();}
+      if(S.me&&!confirm("지금 휴대폰의 내용을 백업 내용으로 바꿀까요?"))return;S=d;S.tab="home";S.member=null;save();render();toast("백업을 불러왔어요");memberSync();}catch(e){toast("집수리예약 백업 파일이 아니에요");}};r.readAsText(f);};i.click();}
 
 /* ---------- 알려주기 ---------- */
 function shMsg(){var u=/^https?:/.test(location.protocol)?location.origin+location.pathname.replace(/index\.html$/,""):PAGE;return {u:u,m:"집 수리·관리 일이 생기면 대원설비건축 집수리예약에서 편하게 접수하세요."};}
@@ -658,6 +658,15 @@ function qrCanvas(url,px,caption){var M=qrMake(url);if(!M)return null;var q=4,n=
   for(var y=0;y<n;y++)for(var x=0;x<n;x++)if(M[y][x])g.fillRect((x+q)*sc,(y+q)*sc,sc,sc);
   if(caption){g.font="bold "+Math.round(cap*0.45)+"px sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(caption,W/2,W+cap*0.42);}return c;}
 
+/* ---------- 등록 알림 (관리앱에서 등록·설치 인원 확인) ---------- */
+function memberSync(){if(!S.me)return;var key=dg(S.me.phone);if(key.length<9)return;
+  if(STANDALONE)S.installed=true;var inst=!!S.installed,day=today();
+  if(S.member&&S.member.key===key&&S.member.inst===inst&&S.member.name===S.me.name&&S.member.day===day&&S.member.houses===S.houses.length)return;
+  var body={name:S.me.name,phone:S.me.phone,joinedAt:S.joinedAt||Date.now(),lastSeen:Date.now(),installed:inst,houses:S.houses.length,app:2};
+  fetch(DB_URL+"/members/"+key+".json",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+   .then(function(r){if(!r.ok)throw 0;if(!S.joinedAt)S.joinedAt=body.joinedAt;S.member={key:key,inst:inst,name:S.me.name,day:day,houses:S.houses.length};save();}).catch(function(){});}
+window.addEventListener("appinstalled",function(){S.installed=true;save();memberSync();});
 render();
+memberSync();
 })();
 </script></body></html>
