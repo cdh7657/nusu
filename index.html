@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261027a">
+<meta name="page-ver" content="20261027b">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -580,7 +580,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261027a</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261027b</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
@@ -660,12 +660,12 @@ function qrCanvas(url,px,caption){var M=qrMake(url);if(!M)return null;var q=4,n=
 
 /* ---------- 등록 알림 (관리앱에서 등록·설치 인원 확인) ---------- */
 function memberSync(){if(!S.me)return;var key=dg(S.me.phone);if(key.length<9)return;
-  if(STANDALONE)S.installed=true;var inst=!!S.installed,day=today();
-  if(S.member&&S.member.key===key&&S.member.inst===inst&&S.member.name===S.me.name&&S.member.day===day&&S.member.houses===S.houses.length)return;
-  var body={name:S.me.name,phone:S.me.phone,joinedAt:S.joinedAt||Date.now(),lastSeen:Date.now(),installed:inst,houses:S.houses.length,app:2};
+  if(STANDALONE&&!S.installed){S.installed=true;S.installedAt=Date.now();}var inst=!!S.installed,day=today(),area=areaOf(mainHouse());
+  if(S.member&&S.member.key===key&&S.member.inst===inst&&S.member.name===S.me.name&&S.member.day===day&&S.member.houses===S.houses.length&&S.member.area===area)return;
+  var body={name:S.me.name,phone:S.me.phone,joinedAt:S.joinedAt||Date.now(),lastSeen:Date.now(),installed:inst,houses:S.houses.length,area:area,app:2};if(S.installedAt)body.installedAt=S.installedAt;
   fetch(DB_URL+"/members/"+key+".json",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
-   .then(function(r){if(!r.ok)throw 0;if(!S.joinedAt)S.joinedAt=body.joinedAt;S.member={key:key,inst:inst,name:S.me.name,day:day,houses:S.houses.length};save();}).catch(function(){});}
-window.addEventListener("appinstalled",function(){S.installed=true;save();memberSync();});
+   .then(function(r){if(!r.ok)throw 0;if(!S.joinedAt)S.joinedAt=body.joinedAt;S.member={key:key,inst:inst,name:S.me.name,day:day,houses:S.houses.length,area:area};save();}).catch(function(){});}
+window.addEventListener("appinstalled",function(){if(!S.installed){S.installed=true;S.installedAt=Date.now();}save();memberSync();});
 render();
 memberSync();
 })();
