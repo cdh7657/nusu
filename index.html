@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261029b">
+<meta name="page-ver" content="20261029c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -163,6 +163,7 @@ ol.how li::marker{font-weight:800;color:var(--ochre-deep)}
 .tiles .tile .tn{line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .tiles .tile small{font-size:11.5px;font-weight:600;color:var(--ink2)}
 .tiles .tile.tel{background:var(--ok-soft)}
+.verbar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;font:inherit;font-weight:800;font-size:14.5px;padding:14px;border:0;border-radius:12px;background:var(--ink);color:var(--paper);box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .tiles .tile.new{outline:3px solid var(--ochre);outline-offset:2px;transition:outline-color .4s}
 .tiles .tadd{background:none;border:2px dashed var(--line);color:var(--ink2)}
 .tiles.edit .tile{animation:wig .32s ease-in-out infinite alternate;touch-action:none;cursor:grab}
@@ -232,11 +233,17 @@ main>details{background:var(--paper);padding:16px 18px}
 <div id="toastRoot"></div>
 <script>
 /* 최신 버전 자동 확인 */
+var TOUCHED=false;document.addEventListener("pointerdown",function(){TOUCHED=true;},{capture:true,passive:true});
+function picking(){try{var t=+sessionStorage.getItem("jr_pick");return t&&Date.now()-t<180000;}catch(e){return false;}}
 (function(){try{
   var cur=(document.querySelector('meta[name="page-ver"]')||{}).content;if(!cur||!/^https?:/.test(location.protocol))return;
   fetch(location.href.split('#')[0],{cache:'reload'}).then(function(r){return r.ok?r.text():''}).then(function(t){
     var m=/<meta name="page-ver" content="([^"]+)"/.exec(t);if(!m||m[1]===cur)return;
-    var k='ver_'+m[1];try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');}catch(e){return;}location.reload();
+    var k='ver_'+m[1];try{if(sessionStorage.getItem(k))return;}catch(e){return;}
+    /* 고객이 이미 화면을 만지는 중이면(연락처 고르기 등) 갑자기 새로고침하지 않고 안내만 */
+    var go=function(){try{sessionStorage.setItem(k,'1');}catch(e){}location.reload();};
+    if(!TOUCHED&&!document.hidden&&!picking())go();
+    else{var b=document.createElement("button");b.type="button";b.className="verbar";b.textContent="새 버전이 나왔어요 · 눌러서 새로 고침";b.onclick=go;document.body.appendChild(b);}
   }).catch(function(){});
 }catch(e){}})();
 
@@ -506,13 +513,14 @@ function tileAdd(x,ask){var L=locList().slice();if(L.length>=LOC_MAX){toast("바
   L.push(x);locSet(L);if(!ask&&!tileAdd.quiet)toast("“"+tName(x)+"” 바로가기에 넣었어요");return true;}
 function tileShow(n){S.locEdit=false;render();var g=$("#tiles");if(!g)return;var t=g.querySelectorAll(".tile"),last=[].slice.call(t,-Math.max(1,n||1));if(!last.length)return;last[0].scrollIntoView({block:"center",behavior:"smooth"});last.forEach(function(e){e.classList.add("new");});setTimeout(function(){last.forEach(function(e){e.classList.remove("new");});},2200);}
 function pickContacts(){if(!(navigator.contacts&&navigator.contacts.select)){tileSheet(-1,{n:"",tel:""},"이 휴대폰 브라우저에서는 연락처 고르기가 안 돼요. 이름과 번호를 적어 주시면 바로가기로 넣어 드려요.");return;}
-  navigator.contacts.select(["name","tel"],{multiple:true}).then(function(r){var n=0,dup=0,no=0;tileAdd.quiet=true;
+  try{sessionStorage.setItem("jr_pick",String(Date.now()));}catch(e){}
+  navigator.contacts.select(["name","tel"],{multiple:true}).then(function(r){try{sessionStorage.removeItem("jr_pick");}catch(e){}var n=0,dup=0,no=0;tileAdd.quiet=true;
     (r||[]).forEach(function(c){var t=(c.tel||[]).filter(function(v){return dg(v).length>=8;})[0];if(!t){no++;return;}var x={n:String((c.name||[])[0]||fmtTel(t)).trim().slice(0,12)||fmtTel(t),tel:fmtTel(t)};
       if(locList().some(function(y){return y.tel&&dg(y.tel)===dg(x.tel);})){dup++;return;}if(tileAdd(x))n++;});tileAdd.quiet=false;
     if(!(r||[]).length)return;hubClear();
     if(n){tileShow(n);toast(n+"명을 바로가기에 넣었어요"+(dup?" (이미 있는 "+dup+"명 제외)":""));}
     else toast(dup?"고른 분은 이미 바로가기에 있어요":no?"고른 연락처에 전화번호가 없어요":locList().length>=LOC_MAX?"바로가기가 꽉 찼어요. 하나를 빼고 넣어 주세요.":"넣지 못했어요");})
-  .catch(function(e){tileAdd.quiet=false;toast("연락처를 불러오지 못했어요 ("+(e&&e.name||"오류")+"). 이름과 번호를 직접 적어 주세요.");tileSheet(-1,{n:"",tel:""});});}
+  .catch(function(e){try{sessionStorage.removeItem("jr_pick");}catch(_){}tileAdd.quiet=false;toast("연락처를 불러오지 못했어요 ("+(e&&e.name||"오류")+"). 이름과 번호를 직접 적어 주세요.");tileSheet(-1,{n:"",tel:""});});}
 function hubClear(){var q=$("#hubQ");if(q)q.value="";var b=$("#hubS");if(b){b.hidden=true;b.innerHTML="";}}
 /* 이름·번호 고치기 (i<0 이면 새로 넣기) */
 function tileSheet(i,nx,note){var L=locList(),x=i>=0?L[i]:nx,isTel=x.tel!=null&&!x.app&&!x.url;
@@ -721,7 +729,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261029b</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261029c</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
@@ -815,6 +823,7 @@ function statusSync(){var L=S.reqs.filter(function(r){return r.kind==="예약"&&
     var ch=r.st!==j.st||r.vdate!==(j.date||"")||r.vtime!==(j.time||"")||r.pname!==(j.pname||"");if(ch){r.st=j.st;r.vdate=j.date||"";r.vtime=j.time||"";r.pname=j.pname||"";r.pphone=j.pphone||"";r.stAt=j.at||Date.now();}return ch;}).catch(function(){return false;});}))
   .then(function(a){if(a.some(Boolean)){save();if(S.tab==="home"&&!document.getElementById("sh"))render();}});}
 statusSync();
+if(picking()&&S.me){try{sessionStorage.removeItem("jr_pick");}catch(e){}S.tab="home";render();tileSheet(-1,{n:"",tel:""},"연락처를 고르는 동안 휴대폰이 앱을 새로 열어서, 고른 분을 받아 오지 못했어요. 다시 \"연락처에서 고르기\"를 누르시거나, 이름과 번호를 여기에 적어 주세요.");}
 document.addEventListener("visibilitychange",function(){if(!document.hidden)statusSync();});
 })();
 </script></body></html>
