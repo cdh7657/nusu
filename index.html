@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261027b">
+<meta name="page-ver" content="20261028a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -53,7 +53,7 @@ main{display:flex;flex-direction:column;gap:10px}
 /* 간판 블록 (홈) */
 .hero{background:var(--ochre);color:var(--on-ochre);padding:30px 20px 34px;gap:14px;position:relative;overflow:hidden}
 .hero .hi{font-size:14px;font-weight:700;color:#4a3214}
-.hero .big{font-family:var(--disp);font-size:44px;line-height:1.12;color:var(--on-ochre);margin:2px 0 4px}
+.hero .big{font-family:var(--disp);font-size:clamp(24px,7.4vw,36px);word-break:keep-all;line-height:1.12;color:var(--on-ochre);margin:2px 0 4px}
 .hero .intro{font-size:15px;line-height:1.7;color:#3b2810}
 .hero .one2{font-size:15.5px;font-weight:800;color:#24180e;margin-top:-6px}
 .hero .one{font-size:15.5px;font-weight:600;line-height:1.6;color:#3b2810;max-width:30em}
@@ -105,7 +105,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--water);outline-offs
 .chk{display:flex;gap:10px;align-items:flex-start;font-size:15px}
 .cand{display:grid;grid-template-columns:minmax(0,1fr) 136px 46px;gap:8px;align-items:center}.cand input{min-width:0}
 .cand button{height:50px;border:0;background:var(--mist);color:var(--muted);border-radius:12px;font:inherit;cursor:pointer}
-.busy{margin:0;font-size:13.5px;color:var(--ochre-deep);font-weight:700}
+.callnote{border-left:5px solid var(--ochre-deep)}.callnote p{margin:0}.callnote p+p{margin-top:6px}
 .num{font-family:var(--disp);font-weight:400;color:var(--ochre-deep);font-size:22px;margin-right:8px;vertical-align:-2px}
 /* 사진 */
 .phs{display:flex;flex-wrap:wrap;gap:8px}.phs:empty{display:none}
@@ -139,6 +139,17 @@ ol.how li::marker{font-weight:800;color:var(--ochre-deep)}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tiles button{font:inherit;font-size:14px;font-weight:700;color:var(--ink);background:var(--mist);border:0;border-radius:12px;padding:16px 4px 13px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
 .tiles button:active{background:var(--ochre-soft)}
+.tiles a{font:inherit;font-size:14px;font-weight:700;color:var(--ink);background:var(--mist);border-radius:12px;padding:16px 4px 11px;display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;text-align:center;word-break:keep-all}
+.tiles a small{font-size:11.5px;font-weight:600;color:var(--ink2)}
+.tiles a.tel{background:var(--ok-soft)}
+.tiles button{word-break:keep-all;text-align:center}
+.sechd{display:flex;justify-content:space-between;align-items:center}.sechd .lnk{padding:4px 2px;font-size:14.5px}
+.lred{flex:none;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.lrow{flex:none;display:flex;align-items:center;gap:6px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--line)}.lrow:last-child{border-bottom:0}
+.lrow .m{flex:1;display:flex;flex-direction:column;min-width:0}.lrow .m .sub{font-size:12.5px}
+.lrow button{font:inherit;width:40px;height:40px;border:1px solid var(--line);background:transparent;border-radius:10px;color:var(--ink);cursor:pointer}.lrow button:disabled{opacity:.3}
+.chips button:disabled{opacity:.4}
+#hHeatEt{margin-top:8px}
 .tiles svg{width:28px;height:28px;stroke:var(--ink);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .search{display:grid;grid-template-columns:1fr auto;gap:8px}
 .search button{font:inherit;font-weight:800;border:0;background:var(--ink);color:var(--paper);border-radius:12px;padding:0 20px;cursor:pointer}
@@ -236,7 +247,7 @@ load();
 /* ---------- 상수 ---------- */
 var INTRO_P='<p>집을 관리하다 보면 크고 작은 일 앞에서<br>"어디에 물어봐야 하지, 누구에게 맡겨야 하지" 고민되고 걱정되실 때가 많으시죠.</p><p><b>대원설비건축이 그 걱정을 덜어드리겠습니다.</b><br>설비는 저희가 직접, 그 밖의 집 관리는 믿고 맡길 수 있는 곳을 함께 찾아 연결해 드립니다.</p>';
 var HERO_DECO='<svg class="drop" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6C50 6 18 46 18 65a32 32 0 0 0 64 0C82 46 50 6 50 6z" fill="none" stroke="#24180e" stroke-width="5"/><path d="M36 66a14 14 0 0 0 14 14" fill="none" stroke="#24180e" stroke-width="5" stroke-linecap="round"/></svg>';
-var HERO_BIG='<p class="big">집 걱정,<br>잠가 드릴게요.</p>';
+var HERO_BIG='<p class="big">관리하고 기록하면<br>우리 집 이력서가 됩니다.</p>';
 var INTRO_ONE='<p class="one">설비는 저희가 직접, 그 밖의 집 관리는 믿고 맡길 곳을 찾아 연결해 드립니다.</p>';
 var INTRO_HTML='<div class="box hero">'+HERO_BIG+HERO_DECO+'</div>';
 var HTYPES=["단독","다세대","아파트","펜션"];
@@ -321,10 +332,11 @@ function houseInfoForm(h){h=h||{};
    +'<div class="field"><span class="lbl">다용도실</span>'+chips("utility",["있음","없음"],h.utility)+'</div>'
    +'<div class="field"><span class="lbl">물</span>'+chips("water",["상수도","지하수"],h.water)+'</div>'
    +'<div class="field"><span class="lbl">하수</span>'+chips("sewage",["정화조","오수합병"],h.sewage)+'<span class="sub">잘 모르시면 비워 두세요</span></div>'
-   +'<div class="field"><span class="lbl">난방</span>'+chips("heat",HEATS,h.heat)+'</div>'
+   +(function(){var hv=h.heat||"",cu=hv&&HEATS.indexOf(hv)<0;return '<div class="field"><span class="lbl">난방</span>'+chips("heat",HEATS,cu?"기타":hv)+'<input id="hHeatEt" maxlength="20" placeholder="난방 종류를 적어 주세요 (예: 펠릿보일러)" aria-label="기타 난방 종류" value="'+esc(cu?hv:"")+'"'+(cu||hv==="기타"?"":" hidden")+'></div>';})()
    +'<p class="sub">건물 구조, 계량기·메인 밸브 위치처럼 전문가가 봐야 아는 것은 방문할 때 저희가 확인해 기록해 드려요.</p>';}
 function wireForms(root){root=root||document;
-  [].forEach.call(root.querySelectorAll("[data-chips] button"),function(b){b.onclick=function(){var p=b.parentNode,on=!b.classList.contains("on");[].forEach.call(p.children,function(x){x.classList.remove("on");});if(on)b.classList.add("on");};});
+  [].forEach.call(root.querySelectorAll("[data-chips] button"),function(b){b.onclick=function(){var p=b.parentNode,on=!b.classList.contains("on");[].forEach.call(p.children,function(x){x.classList.remove("on");});if(on)b.classList.add("on");
+    if(p.dataset.chips==="heat"){var et=document.getElementById("hHeatEt");if(et){et.hidden=!(on&&b.dataset.v==="기타");if(!et.hidden)et.focus();}}};});
   [].forEach.call(root.querySelectorAll("[data-st]"),function(b){b.onclick=function(){var e=document.getElementById(b.dataset.st);var n=Math.max(0,Math.min(20,(+e.textContent||0)+(+b.dataset.d)));e.textContent=n;};});
   var ab=root.querySelector("#hAddrB");if(ab)ab.onclick=function(){addrSearch(function(a){$("#hAddr").value=a;$("#hAddr2").focus();});};
   var me=root.querySelector("#hMe");if(me)me.onchange=function(){var t=$("#hTel");t.hidden=me.checked;if(!me.checked)t.focus();};}
@@ -334,7 +346,7 @@ function readHouse(h){h=h||{};var v=function(i){var e=document.getElementById(i)
   return h;}
 function readInfo(h){if(!document.querySelector('[data-chips="type"]'))return h;
   h.type=chipVal("type");h.area=document.getElementById("hArea").value.replace(/\D/g,"");h.living=+$("#hLiving").textContent;h.rooms=+$("#hRooms").textContent;h.baths=+$("#hBaths").textContent;
-  h.utility=chipVal("utility");h.water=chipVal("water");h.sewage=chipVal("sewage");h.heat=chipVal("heat");h.infoAt=Date.now();return h;}
+  h.utility=chipVal("utility");h.water=chipVal("water");h.sewage=chipVal("sewage");h.heat=chipVal("heat");if(h.heat==="기타"){var et=document.getElementById("hHeatEt");if(et&&et.value.trim())h.heat=et.value.trim().slice(0,20);}h.infoAt=Date.now();return h;}
 function infoLine(h){var a=[];if(h.type)a.push(h.type);if(h.area)a.push(h.area+"평");if(h.rooms!=null&&h.infoAt)a.push("방 "+h.rooms);if(h.baths!=null&&h.infoAt)a.push("화장실 "+h.baths);if(h.utility==="있음")a.push("다용도실");if(h.water)a.push(h.water);if(h.sewage)a.push(h.sewage);if(h.heat)a.push(h.heat);return a;}
 
 /* ---------- 연락받을 번호 칸 (입력 + [내 번호]) ---------- */
@@ -370,41 +382,62 @@ function finishJoin(){S.me=joinMe;S.consent=true;S.joinedAt=Date.now();S.houses=
 function winterOn(){var d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m===11&&dd>=20)||m===12||m===1||m===2;}
 function leakDue(){var ym=today().slice(0,7);return S.houses.filter(function(h){return !S.checks.some(function(c){return c.kind==="누수"&&c.houseId===h.id&&String(c.date).slice(0,7)===ym;});});}
 var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 고객 관리(등록한 이름·전화번호), 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
-function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<p class="one2">우리 집 관리 이력을 직접 만들어 보세요.</p><button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+HERO_DECO+'</div>';
+function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+HERO_DECO+'</div>';
   var al='';
   if(winterOn())al+='<div class="box warn"><h3>겨울철 동파 대비</h3><p>열선이 설치된 곳은 전원이 연결되어 있는지, 정상적으로 작동하는지 확인해 주세요. 기온이 크게 떨어지는 날에는 수도꼭지를 조금 틀어 두면 동파를 막을 수 있어요.</p></div>';
   var due=leakDue();if(due.length)al+='<button type="button" class="item hot" data-go="leak" data-h="'+esc(due[0].id)+'"><span class="m"><span class="t">이번 달 누수 점검이 남아 있어요</span><span class="s" style="display:block">'+esc(due.map(function(x){return x.name;}).join(", "))+' · 계량기 사진 두 장이면 끝나요</span></span><span class="tag">점검하기</span></button>';
+  S.reqs.filter(function(r){return (r.st==="confirmed"&&r.vdate>=plus(0))||(r.st==="partner"&&Date.now()-(r.stAt||0)<7*864e5);}).sort(function(a,b){return (a.vdate||"").localeCompare(b.vdate||"");}).forEach(function(r){var H=house(r.houseId);
+    al='<button type="button" class="item ok" data-go="tab" data-t="book"><span class="m"><span class="t">'+(r.st==="confirmed"?"방문 일정이 확정됐어요":"접수하신 일을 업체에 연결했어요")+'</span><span class="s" style="display:block">'+esc(r.work)+' · '+esc(H?H.name:(r.houseName||""))+'</span><span class="s" style="display:block;font-weight:800;color:var(--ok)">'+esc(stLine(r))+'</span></span><span class="tag ok">보기</span></button>'+al;});
   h+='<div class="sec"><h2>알림</h2></div>'+(al||'<div class="empty">새 알림이 없어요.</div>');
   h+=vLocal();
   h+='<div class="menu">'+mrow("sharem","share","이웃·친구에게 소개하기","카톡·문자·QR로 보내기")+'</div>';
   return h;}
 /* 우리 동네: 집 주소의 군·읍·면을 붙여 지도에서 찾기 (전화번호·전화 걸기는 지도에서) */
 var LOCAL=["주유소","철물점","LPG 가스","정화조 청소","전기 공사","열쇠·도어락"];
+var LOCAL_MORE=["하나로마트","농기계 수리","보일러 기름","약국","병원","동물병원","세탁소","택배","면사무소","카센터"];
+var LOC_MAX=12;
+function locList(){return Array.isArray(S.locT)?S.locT:LOCAL.map(function(x){return {q:x};});}
+function locSet(L){S.locT=L.slice(0,LOC_MAX);save();}
 function areaOf(H){var a=String(H&&H.addr||""),g=/(\S+(?:군|시))(?=\s|$)/.exec(a),m=/(\S+(?:읍|면))(?=\s|$)/.exec(a);return ((g?g[1]+" ":"")+(m?m[1]:"")).trim();}
 function locH(){return S.locH&&house(S.locH)?house(S.locH):mainHouse();}
 function vLocal(){var H=locH(),area=areaOf(H);
-  return '<div class="sec"><h2>우리 동네</h2></div><div class="box">'
+  return '<div class="sec sechd"><h2>우리 동네</h2><button type="button" class="lnk" data-go="locedit">편집</button></div><div class="box">'
    +(S.houses.length>1?'<div class="chips" id="locHs">'+S.houses.map(function(x){return '<button type="button" data-loch="'+esc(x.id)+'" class="'+(x===H?"on":"")+'">'+esc(x.name)+'</button>';}).join("")+'</div>':'')
-   +'<p class="sub">'+(area?'<b style="color:var(--ink)">'+esc(area)+'</b> 근처를 지도에서 찾아요. 상호와 전화번호를 보고 바로 전화할 수 있어요.':'우리 집 근처를 지도에서 찾아요.')+'</p>'
-   +'<div class="tiles">'+LOCAL.map(function(x){return '<button type="button" data-loc="'+esc(x)+'"><svg viewBox="0 0 24 24">'+(LOCAL_IC[x]||"")+'</svg>'+esc(x)+'</button>';}).join("")+'</div>'
+   +'<p class="sub">'+(area?'<b style="color:var(--ink)">'+esc(area)+'</b> 근처를 지도에서 찾아요. "편집"에서 자주 찾는 곳과 단골 전화번호를 넣어 두세요.':'우리 집 근처를 지도에서 찾아요. "편집"에서 단골 전화번호도 넣어 둘 수 있어요.')+'</p>'
+   +'<div class="tiles">'+locList().map(function(x){return x.tel?'<a href="tel:'+esc(dg(x.tel))+'" class="tel"><svg viewBox="0 0 24 24">'+LOC_TEL+'</svg>'+esc(x.n)+'<small>'+esc(x.tel)+'</small></a>':'<button type="button" data-loc="'+esc(x.q)+'"><svg viewBox="0 0 24 24">'+(LOCAL_IC[x.q]||LOC_PIN)+'</svg>'+esc(x.q)+'</button>';}).join("")+'</div>'
    +'<form id="locF" class="search" role="search"><input id="locQ" type="search" placeholder="다른 곳 찾기 (예: 농기계 수리)" aria-label="우리 동네에서 찾기"><button type="submit">찾기</button></form></div>';}
 var LOCAL_IC={"주유소":'<path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M3 20h12M6 8h6M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/>',"철물점":'<path d="M14 4l6 6-3 3-6-6zM11 7l-7 7a2 2 0 0 0 3 3l7-7"/>',"LPG 가스":'<path d="M12 3c3 4 6 6.5 6 10.5A6 6 0 0 1 6 13.5C6 10 9 8 9 5c1.5 1 2.5 2 3 3.5C12.5 7 12.5 5 12 3z"/>',"정화조 청소":'<path d="M3 16V9h11v7M14 11h4l3 3v2h-7M3 16h18M7 19a2 2 0 1 0 0-.1M17 19a2 2 0 1 0 0-.1"/>',"전기 공사":'<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',"열쇠·도어락":'<path d="M14.5 9.5a4 4 0 1 0-1.4 3L20 19.5M17 16.5l2-2M18.5 18l1.5-1.5"/><circle cx="10.5" cy="8.5" r="1"/>'};
+var LOC_PIN='<path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>';
+var LOC_TEL='<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>';
+function locEditSheet(msg){var L=locList(),has=function(q){return L.some(function(x){return !x.tel&&x.q===q;});},pool=LOCAL.concat(LOCAL_MORE).filter(function(q){return !has(q);}),full=L.length>=LOC_MAX;
+  sheet("우리 동네 편집",'<p class="sub">우리 집에 필요한 곳만 남기고, 순서를 바꾸고, 단골 전화번호를 넣어 두세요. 이 휴대폰에만 저장돼요.</p>'
+   +'<div class="sec" style="padding:4px 0 0"><h2>내 목록 <span class="sub">'+L.length+'/'+LOC_MAX+'</span></h2></div>'
+   +(L.length?'<div class="lred">'+L.map(function(x,i){return '<div class="lrow"><span class="m"><b>'+esc(x.tel?x.n:x.q)+'</b><span class="sub">'+(x.tel?"전화 "+esc(x.tel):"지도에서 찾기")+'</span></span><button type="button" data-le="up" data-i="'+i+'" aria-label="위로"'+(i?"":" disabled")+'>▲</button><button type="button" data-le="dn" data-i="'+i+'" aria-label="아래로"'+(i<L.length-1?"":" disabled")+'>▼</button><button type="button" data-le="del" data-i="'+i+'" aria-label="빼기">✕</button></div>';}).join("")+'</div>':'<div class="empty">비어 있어요. 아래에서 골라 넣어 주세요.</div>')
+   +'<div class="sec" style="padding:12px 0 0"><h2>골라 넣기</h2></div>'+(pool.length?'<div class="chips">'+pool.map(function(q){return '<button type="button" data-le="add" data-q="'+esc(q)+'"'+(full?" disabled":"")+'>+ '+esc(q)+'</button>';}).join("")+'</div>':'<p class="sub">모두 넣었어요.</p>')
+   +'<div class="sec" style="padding:12px 0 0"><h2>직접 넣기</h2></div><div class="box" style="gap:8px"><input id="leN" maxlength="12" placeholder="이름 (예: 단골 기름집, 이장님)" aria-label="이름"><input id="leT" type="tel" inputmode="tel" maxlength="20" placeholder="전화번호 (비우면 지도에서 찾기)" aria-label="전화번호"><p class="err" id="leErr"'+(msg?"":" hidden")+'>'+esc(msg||"")+'</p><button type="button" class="btn" data-le="own"'+(full?" disabled":"")+'>넣기</button></div>'
+   +(full?'<p class="sub">최대 '+LOC_MAX+'개까지 넣을 수 있어요. 하나를 빼면 더 넣을 수 있어요.</p>':'')
+   +'<button type="button" class="btn ghost" data-le="reset">처음 목록으로 되돌리기</button>');}
+document.addEventListener("click",function(e){var b=e.target.closest("[data-le]");if(!b||b.disabled)return;var L=locList().slice(),i=+b.dataset.i,a=b.dataset.le,msg="";
+  if(a==="up"&&i>0){var t=L[i-1];L[i-1]=L[i];L[i]=t;}else if(a==="dn"&&i<L.length-1){var t2=L[i+1];L[i+1]=L[i];L[i]=t2;}else if(a==="del")L.splice(i,1);
+  else if(a==="add"){if(L.length<LOC_MAX)L.push({q:b.dataset.q});}
+  else if(a==="own"){var n=$("#leN").value.trim(),t3=$("#leT").value.trim();if(!n){msg="이름을 적어 주세요.";}else if(t3&&dg(t3).length<8){msg="전화번호를 확인해 주세요.";}else if(L.length<LOC_MAX)L.push(t3?{n:n,tel:fmtTel(t3)}:{q:n});}
+  else if(a==="reset"){S.locT=null;save();render();locEditSheet();return;}
+  if(!msg)locSet(L);render();locEditSheet(msg);if(msg){$("#leN").value=n||"";$("#leT").value=t3||"";}});
 function locSearch(q){q=String(q||"").trim();if(!q)return;var u="https://m.map.naver.com/search2/search.naver?query="+encodeURIComponent((areaOf(locH())+" "+q).trim());var w=null;try{w=window.open(u,"_blank");}catch(e){}if(!w)location.href=u;}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-loc]");if(b){locSearch(b.dataset.loc);return;}var c=e.target.closest("[data-loch]");if(c){S.locH=c.dataset.loch;save();render();}});
 document.addEventListener("submit",function(e){if(e.target&&e.target.id==="locF"){e.preventDefault();locSearch($("#locQ").value);}});
-function reqItem(r){var H=house(r.houseId);return '<div class="item'+(r.kind==="문의"?"":" ok")+'"><span class="m"><span class="t">'+esc(r.kind==="문의"?"문의":r.work)+' <span class="tag'+(r.kind==="문의"?"":" ok")+'">'+(r.kind==="문의"?"답변 준비 중":"확인 중")+'</span></span><span class="s" style="display:block">'+esc(new Date(r.ts).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"}))+' · '+esc(H?H.name:(r.houseName||""))+(r.dates&&r.dates.length?' · 희망 '+esc(r.dates.map(dshow).join(", ")):"")+'</span>'+(r.note?'<span class="s" style="display:block">'+esc(r.note.slice(0,60))+(r.note.length>60?"…":"")+'</span>':'')+'</span></div>';}
+function stLine(r){return r.st==="confirmed"?"방문 "+dshow(r.vdate)+(r.vtime?" "+tshow(r.vtime):" · 시간은 따로 연락드려요"):r.st==="partner"?(r.pname||"협력업체")+"에서 직접 연락드려요"+(r.pphone?" ("+r.pphone+")":""):"";}
+function tshow(t){var h=+String(t).slice(0,2);if(isNaN(h))return t;return (h<12?"오전 ":"오후 ")+(h>12?h-12:h)+"시"+(String(t).slice(3,5)!=="00"?" "+String(t).slice(3,5)+"분":"");}
+function reqItem(r){var H=house(r.houseId),tg=r.kind==="문의"?"답변 준비 중":r.st==="confirmed"?"일정 확정":r.st==="partner"?"업체 연결":"확인 중";return '<div class="item'+(r.kind==="문의"?"":" ok")+'"><span class="m"><span class="t">'+esc(r.kind==="문의"?"문의":r.work)+' <span class="tag'+(r.kind==="문의"?"":" ok")+'">'+tg+'</span></span><span class="s" style="display:block">'+esc(new Date(r.ts).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"}))+' 접수 · '+esc(H?H.name:(r.houseName||""))+(r.st?"":r.dates&&r.dates.length?' · 희망 '+esc(r.dates.map(dshow).join(", ")):"")+'</span>'+(r.st?'<span class="s" style="display:block;font-weight:800;color:var(--ok)">'+esc(stLine(r))+'</span>':'')+(r.note?'<span class="s" style="display:block">'+esc(r.note.slice(0,60))+(r.note.length>60?"…":"")+'</span>':'')+'</span></div>';}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-go]");if(!b)return;var g=b.dataset.go;
   if(g==="book")bookSheet(b.dataset.w||"",b.dataset.h||"",b.dataset.n||"");else if(g==="ask")askSheet(b.dataset.n||"");else if(g==="install")installGuide();else if(g==="share")share();else if(g==="qr")qrShow();
   else if(g==="leak"){closeSheet();S.tab="house";S.chkH=b.dataset.h||S.chkH;render();scrollTo(0,0);leakSheet(S.chkH);}
   else if(g==="heatchk"){heatSheet(b.dataset.h);}
   else if(g==="hadd")houseSheet(null,function(h){S.chkH=h.id;render();});else if(g==="hedit")houseSheet(b.dataset.h);else if(g==="hinfo")infoSheet(b.dataset.h);
   else if(g==="chkh"){S.chkH=b.dataset.h;render();}else if(g==="tab"){goTab(b.dataset.t);}
-  else if(g==="me")meSheet();else if(g==="backupm")backupSheet();else if(g==="sharem")shareSheet();else if(g==="privacy")privacySheet();else if(g==="backup")backup();else if(g==="restore")pickRestore();else if(g==="cdel")delCheck(b.dataset.id);else if(g==="hdel")delHouse(b.dataset.h);});
+  else if(g==="me")meSheet();else if(g==="locedit")locEditSheet();else if(g==="backupm")backupSheet();else if(g==="sharem")shareSheet();else if(g==="privacy")privacySheet();else if(g==="backup")backup();else if(g==="restore")pickRestore();else if(g==="cdel")delCheck(b.dataset.id);else if(g==="hdel")delHouse(b.dataset.h);});
 
 /* ---------- 접수 ---------- */
-var busy={};
-function loadBusy(){return fetch(DB_URL+"/busy.json").then(function(r){return r.ok?r.json():null;}).then(function(j){busy=j||{};}).catch(function(){});}
-loadBusy();
 function hopts(b){b=b||{};return '<option value="시간 협의">시간 협의</option>'+HRS.map(function(x){return '<option value="'+x+':00">'+x+':00'+(b[x]?' (다른 일정 있음)':'')+'</option>';}).join("");}
 function houseChips(sel,id,proxy){return '<div class="chips" id="'+(id||"bkH")+'">'+S.houses.map(function(h){return '<button type="button" data-h="'+esc(h.id)+'" class="'+(!BK.proxy||!proxy?(h.id===sel?"on":""):"")+'">'+esc(h.name)+'</button>';}).join("")+(proxy?'<button type="button" data-proxy="1" class="'+(BK.proxy?"on":"")+'">다른 집</button>':'')+'</div>';}
 var BK={svc:"",sel:"",memo:"",PH:[],cands:null,tel:null,proxy:false,paddr:"",paddr2:""};
@@ -414,7 +447,7 @@ function svcBtns(list){return list.map(function(n){return '<button type="button"
 var FLOW=["접수","확인","일정 확정","방문"];
 function flowHtml(at){return '<ol class="flow">'+FLOW.map(function(x,i){return '<li class="'+(i<=at?"done":"")+(i===at+1?" next":"")+'"><i></i><span>'+x+'</span></li>';}).join("")+'</ol>';}
 function bkSel(){return BK.sel&&house(BK.sel)?BK.sel:(mainHouse()||{}).id;}
-function vBook(){var s='<div class="ptitle"><h1>수리 접수</h1><p class="sub">필요한 도움과 희망 일정을 알려 주세요. 확인 후 방문 일정을 확정해 드려요.</p></div><form id="bkF" novalidate style="display:flex;flex-direction:column;gap:16px"><div class="box">';
+function vBook(){var s='<div class="ptitle"><h1>수리 접수</h1><p class="sub">필요한 도움을 알려 주세요. 확인 후 바로 전화드려 방문 일정을 잡아 드립니다.</p></div><form id="bkF" novalidate style="display:flex;flex-direction:column;gap:16px"><div class="box">';
   s+='<div class="field"><span class="lbl"><span class="num">1</span>어느 집인가요?</span>'+houseChips(bkSel(),"bkH",true)+(BK.proxy?'':'<p class="sub" id="bkHi"></p>')+'</div>';
   if(BK.proxy){s+='<div class="box soft" style="gap:10px"><p class="sub">가족·이웃 등 다른 집 일을 대신 접수해요. 이 주소는 우리 집 목록에 저장되지 않아요.</p><div class="field"><label for="pAddr">주소</label><div class="addr"><input id="pAddr" type="text" readonly placeholder="주소 검색을 눌러 주세요" value="'+esc(BK.paddr)+'"><button type="button" id="pAddrBtn">주소 검색</button></div><input id="pAddr2" type="text" maxlength="100" placeholder="상세 주소 (동·호수, 집 위치 설명)" aria-label="상세 주소" value="'+esc(BK.paddr2)+'"></div>'
     +telField("bkTel","현장에서 연락받을 분 번호",BK.tel!=null?BK.tel:"","현장에서 만날 분 번호를 적어 주세요. 비워 두면 내 번호로 연락드려요.")+'</div>';}
@@ -422,7 +455,7 @@ function vBook(){var s='<div class="ptitle"><h1>수리 접수</h1><p class="sub"
   s+='</div><div class="box"><div class="field"><span class="lbl" id="svcLbl"><span class="num">2</span>어떤 도움이 필요하세요?</span><div class="svc3" id="svc3">'+svcBtns(SVC3)+'</div><div class="svc5" id="svc5">'+svcBtns(SVC5)+'</div></div>';
   s+='</div><div class="box"><div class="field"><label for="bkMemo"><span class="num">3</span>상황을 간단하게 설명해 주세요</label><textarea id="bkMemo" maxlength="1000" placeholder="예) 보일러실 배관에서 물이 떨어져요. 어제부터 시작됐어요.">'+esc(BK.memo)+'</textarea></div>';
   s+='<div class="field"><span class="lbl">사진 <span class="sub">(선택, 최대 3장)</span></span><p class="sub">상황이 보이는 사진이 있으면 출동 준비에 큰 도움이 돼요.</p><div class="phs" id="phs"></div><label class="btn ghost" for="bkPh" id="phAdd" style="cursor:pointer">+ 사진 추가</label><input id="bkPh" type="file" accept="image/*" multiple hidden></div>';
-  s+='</div><div class="box"><div class="field"><span class="lbl"><span class="num">4</span>서비스 받으실 날짜와 시간을 골라 주세요 <span class="sub">(최대 5개)</span></span><p class="sub">서비스 받으실 수 있는 날짜와 시간을 골라 주시면, 일정을 확인한 뒤 방문 가능한 날짜와 시간으로 예약하고 결과를 알림으로 보내 드리겠습니다. 선택하신 날짜와 시간대에 방문이 어려울 경우, 전화로 일정을 조율해 드리겠습니다.</p><p class="sub">이미 일정이 있는 시간은 표시해 드려요. 그 시간도 고르실 수 있어요.</p><div id="cands" style="display:flex;flex-direction:column;gap:6px"></div><button type="button" class="btn ghost" id="addCand">+ 날짜 추가</button></div>';
+  s+='</div><div class="box callnote"><p><b>접수해 주시면 확인 후 바로 전화드려 방문 일정을 잡아 드립니다.</b></p><p class="sub">날짜는 고르지 않으셔도 돼요. 통화로 편한 시간을 맞춰 드려요.</p></div>';
   s+='</div><div class="hp" aria-hidden="true"><label for="bkWeb">웹사이트</label><input id="bkWeb" type="text" tabindex="-1" autocomplete="off"></div>';
   s+='<p class="err" id="bkErr" role="alert" hidden></p><button type="submit" class="btn hot" id="bkSend">접수하기</button></form>';
   s+='<div class="box soft"><h3>궁금한 게 있으신가요?</h3><p class="sub">고장이 아니어도 괜찮아요. "문손잡이는 어떤 걸 사야 하나요?" 같은 작은 것도 편하게 물어보세요.</p><button type="button" class="btn ghost" data-go="ask">문의하기</button></div>';
@@ -439,31 +472,16 @@ function bookWire(){var f=$("#bkF");if(!f)return;
   [].forEach.call(f.querySelectorAll("[data-svc]"),function(b){b.onclick=function(){BK.svc=b.dataset.svc;[].forEach.call(f.querySelectorAll("[data-svc]"),function(x){x.classList.toggle("on",x===b);});};});
   $("#bkMemo").addEventListener("input",function(){BK.memo=this.value;});
   $("#bkTel").addEventListener("input",function(){BK.tel=this.value;});
-  function saveC(){BK.cands=[].map.call($("#cands").children,function(r){return{date:r.querySelector("input").value,time:r.querySelector("select").value};});}
-  function chk(w){var d=w.querySelector("input").value,sl=w.querySelector("select"),cur=sl.value,b=busy[d]||{},m="";sl.innerHTML=hopts(b);sl.value=cur||"시간 협의";var t=sl.value;
-    var n=HRS.filter(function(x){return b[x];}).length;
-    if(/^\d\d:00$/.test(t)){if(b[t.slice(0,2)])m="이 시간은 이미 다른 일정이 있어요. 다른 시간이나 다른 날도 함께 골라 주세요.";else if(b.x)m="이 날은 다른 일정이 있어 시간이 조금 조정될 수 있어요.";}
-    else if(n>=7)m="이 날은 일정이 많아요. 다른 날도 함께 골라 주시면 더 빨리 맞춰 드려요.";
-    var p=w.querySelector(".busy");p.textContent=m;p.hidden=!m;}
-  function addCand(date,time){var box=$("#cands");if(box.children.length>=5)return;var w=document.createElement("div");var n=box.children.length+1;
-    w.innerHTML='<div class="cand"><input type="date" aria-label="날짜 '+n+'" min="'+plus(0)+'"><select aria-label="시간 '+n+'">'+hopts()+'</select><button type="button" aria-label="이 날짜 빼기">✕</button></div><p class="busy" hidden role="status"></p>';
-    w.querySelector("input").value=date||"";if(time)w.querySelector("select").value=time;
-    w.querySelector("input").onchange=w.querySelector("select").onchange=function(){chk(w);saveC();};
-    w.querySelector("button").onclick=function(){w.remove();$("#addCand").hidden=false;saveC();};
-    box.appendChild(w);chk(w);$("#addCand").hidden=box.children.length>=5;}
-  $("#addCand").onclick=function(){addCand();saveC();};
-  (BK.cands||[{date:plus(1),time:"시간 협의"},{date:plus(2),time:"시간 협의"}]).forEach(function(c){addCand(c.date,c.time);});saveC();
-  loadBusy().then(function(){var c=$("#cands");if(c)[].forEach.call(c.children,chk);});
   function phDraw(){var b=$("#phs");if(!b)return;b.innerHTML="";BK.PH.forEach(function(d,i){var w=document.createElement("div");w.className="ph";var im=new Image();im.src=d;im.alt="첨부 사진";var x=document.createElement("button");x.type="button";x.textContent="×";x.setAttribute("aria-label","사진 빼기");x.onclick=function(){BK.PH.splice(i,1);phDraw();};w.appendChild(im);w.appendChild(x);b.appendChild(w);});$("#phAdd").hidden=BK.PH.length>=3;}
   phDraw();
   $("#bkPh").addEventListener("change",function(){var self=this,fs=[].slice.call(this.files||[]).slice(0,3-BK.PH.length);fs.reduce(function(p,fl){return p.then(function(){return shrink(fl,1000,0.7).then(function(d){if(d)BK.PH.push(d);});});},Promise.resolve()).then(function(){self.value="";phDraw();});});
   f.addEventListener("submit",function(e){e.preventDefault();if($("#bkWeb").value)return;
-    saveC();var c=BK.cands.filter(function(x){return x.date;});var miss=[];var tel=$("#bkTel").value.trim();
-    if(BK.proxy&&!BK.paddr)miss.push("다른 집 주소");if(!BK.svc)miss.push("필요한 도움");if(!c.length)miss.push("날짜");
+    var miss=[];var tel=$("#bkTel").value.trim();
+    if(BK.proxy&&!BK.paddr)miss.push("다른 집 주소");if(!BK.svc)miss.push("필요한 도움");
     if(miss.length){ferr("bkErr",miss.join(", ")+"을(를) 골라 주세요.");return;}
     if(tel&&dg(tel).length<9){ferr("bkErr","연락받을 번호를 확인해 주세요.");return;}
     var H=BK.proxy?{id:"",name:"대리 접수",label:"다른 집",addr:BK.paddr,addr2:(BK.paddr2||"").trim(),contactMe:true}:house(bkSel());var contact=!dg(tel)||dg(tel)===dg(S.me.phone)?"":fmtTel(tel);
-    send({kind:"예약",work:BK.svc,note:BK.memo.trim(),dates:c.map(function(x){return x.date+" "+x.time;}),photos:BK.PH.slice(),contact:contact},H,$("#bkSend"),"bkErr");});}
+    send({kind:"예약",work:BK.svc,note:BK.memo.trim(),dates:[],photos:BK.PH.slice(),contact:contact},H,$("#bkSend"),"bkErr");});}
 /* 점검 결과 등에서 "예약"을 누르면 접수 화면을 채워서 보여 줌 */
 function bookSheet(work,hid,note){if(work)BK.svc=work;if(hid&&house(hid)){BK.sel=hid;BK.tel=null;BK.proxy=false;}if(note)BK.memo=note;closeSheet();S.tab="book";render();scrollTo(0,0);}
 
@@ -489,12 +507,12 @@ function send(o,H,btn,errId){
   var me=o.me||S.me;H=H||mainHouse();var contact=o.contact!=null?o.contact:(H&&H.contactMe===false&&H.contact?fmtTel(H.contact):"");
   var tagLine=(H?"[집: "+H.name+"]":"")+(contact?" [현장 연락: "+contact+"]":"")+(o.kind==="문의"?" [문의]":"");
   var full={name:me.name,phone:me.phone,addr:H?H.addr:"",addr2:H?H.addr2:"",work:o.work,note:o.note,dates:o.dates,consent:true,ts:Date.now(),status:"new",
-    kind:o.kind,house:H?H.name:"",contact:contact,app:2};
+    kind:o.kind,house:H?H.name:"",contact:contact,app:2};if(o.kind==="예약")full.sched="call";
   var info=H?infoLine(H):[];if(info.length)full.houseInfo=info.join(" · ");
   full.houses=S.houses.map(function(h){return {name:h.name,addr:h.addr||"",addr2:h.addr2||"",contact:h.contactMe===false&&h.contact?fmtTel(h.contact):"",info:infoLine(h).join(" · ")};});
   if(o.photos&&o.photos.length)full.photos=o.photos;
   /* 서버 규칙이 예전 칸만 받는 경우를 대비해, 실패하면 예전 형식으로 다시 보냄 */
-  var basic={name:full.name,phone:full.phone,addr:full.addr,addr2:full.addr2,work:o.kind==="문의"?"기타 수리":o.work,note:(tagLine+(full.houseInfo?" [집 정보: "+full.houseInfo+"]":"")+"\n"+(o.note||"")).trim(),dates:o.dates.length?o.dates:[plus(1)+" 시간 협의"],consent:true,ts:full.ts,status:"new"};
+  var basic={name:full.name,phone:full.phone,addr:full.addr,addr2:full.addr2,work:o.kind==="문의"?"기타 수리":o.work,note:(tagLine+(full.houseInfo?" [집 정보: "+full.houseInfo+"]":"")+"\n"+(o.note||"")).trim(),dates:o.dates.length?o.dates:[plus(0)+" 전화 조율"],consent:true,ts:full.ts,status:"new"};
   if(full.photos)basic.photos=full.photos;
   var post=function(bd){return fetch(DB_URL+"/requests.json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(bd)}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});};
   var noPh=function(bd){var b2=JSON.parse(JSON.stringify(bd));delete b2.photos;delete b2.houseInfo;b2.note=(b2.note?b2.note+"\n":"")+"(사진 "+bd.photos.length+"장 첨부 실패)";return b2;};
@@ -505,7 +523,7 @@ function send(o,H,btn,errId){
      var first=!S.me;if(!S.me)S.me=me;S.consent=true;if(o.newHouse&&!house(o.newHouse.id))S.houses.push(o.newHouse);
      S.reqs.push({id:(res&&res.name)||uid(),ts:full.ts,kind:o.kind,work:o.work,note:o.note,dates:o.dates,houseId:H?H.id:"",houseName:H?(H.label||H.name):""});if(o.kind==="예약")bkReset();save();
      closeSheet();S.tab="book";render();scrollTo(0,0);
-     sheet(o.kind==="문의"?"문의를 보냈어요":"접수됐어요",(o.kind==="문의"?'':flowHtml(0))+'<div class="box ok"><p><b>'+esc(me.name)+'님, 접수됐어요.</b></p><p>'+(o.kind==="문의"?"확인하는 대로 전화나 문자로 답해 드릴게요.":"일정을 확인한 뒤 방문 날짜와 시간을 확정해 알려 드릴게요. 고르신 시간이 어려우면 전화로 조율해 드려요.")+'</p>'+(dropped?'<p class="err">접수는 됐지만 사진은 보내지 못했어요. 사진은 문자로 보내 주세요.</p>':'')+'</div>'
+     sheet(o.kind==="문의"?"문의를 보냈어요":"접수됐어요",(o.kind==="문의"?'':flowHtml(0))+'<div class="box ok"><p><b>'+esc(me.name)+'님, 접수됐어요.</b></p><p>'+(o.kind==="문의"?"확인하는 대로 전화나 문자로 답해 드릴게요.":"확인 후 바로 전화드려 방문 일정을 잡아 드릴게요. 일정이 정해지면 문자와 이 앱의 홈 화면으로 알려 드려요.")+'</p>'+(dropped?'<p class="err">접수는 됐지만 사진은 보내지 못했어요. 사진은 문자로 보내 주세요.</p>':'')+'</div>'
        +(first?'<p class="sub">적어 주신 이름·전화번호'+(o.newHouse?'·주소는 "우리 집"으로':'는')+' 이 휴대폰에 저장했어요. 다음부터는 다시 적지 않으셔도 돼요.</p>':'')
        +(o.newHouse?'<p class="sub">아래 "우리 집"에서 주택 종류·물·난방을 넣어 두시면 우리 집에 맞는 점검을 알려 드려요.</p>':'')+'<div class="shr"><button type="button" class="lnk" data-go="share">이웃·친구에게 알려주기</button><a class="lnk" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="lnk" data-go="qr">QR 보여주기</button></div>');})
    .catch(function(){btn.disabled=false;btn.textContent=o.kind==="문의"?"문의 보내기":"접수하기";ferr(errId,"보내지 못했어요. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.");});}
@@ -580,7 +598,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261027b</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261028a</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
@@ -668,5 +686,12 @@ function memberSync(){if(!S.me)return;var key=dg(S.me.phone);if(key.length<9)ret
 window.addEventListener("appinstalled",function(){if(!S.installed){S.installed=true;S.installedAt=Date.now();}save();memberSync();});
 render();
 memberSync();
+/* 관리앱에서 일정을 잡으면 /reqstatus/{접수번호} 에 결과가 올라옴 → 홈 알림·접수 내역에 표시 */
+function statusSync(){var L=S.reqs.filter(function(r){return r.kind==="예약"&&r.id&&r.id.charAt(0)==="-"&&Date.now()-r.ts<60*864e5&&!(r.st==="confirmed"&&r.vdate<plus(0));});if(!L.length)return;
+  Promise.all(L.map(function(r){return fetch(DB_URL+"/reqstatus/"+encodeURIComponent(r.id)+".json").then(function(x){return x.ok?x.json():null;}).then(function(j){if(!j||!j.st)return false;
+    var ch=r.st!==j.st||r.vdate!==(j.date||"")||r.vtime!==(j.time||"")||r.pname!==(j.pname||"");if(ch){r.st=j.st;r.vdate=j.date||"";r.vtime=j.time||"";r.pname=j.pname||"";r.pphone=j.pphone||"";r.stAt=j.at||Date.now();}return ch;}).catch(function(){return false;});}))
+  .then(function(a){if(a.some(Boolean)){save();if(S.tab==="home"&&!document.getElementById("sh"))render();}});}
+statusSync();
+document.addEventListener("visibilitychange",function(){if(!document.hidden)statusSync();});
 })();
 </script></body></html>
