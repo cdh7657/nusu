@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261029c">
+<meta name="page-ver" content="20261029d">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -150,15 +150,6 @@ ol.how li::marker{font-weight:800;color:var(--ochre-deep)}
 .lrow button{font:inherit;width:40px;height:40px;border:1px solid var(--line);background:transparent;border-radius:10px;color:var(--ink);cursor:pointer}.lrow button:disabled{opacity:.3}
 .chips button:disabled{opacity:.4}
 #hHeatEt{margin-top:8px}
-.hub{display:flex;align-items:center;gap:8px;margin:12px 16px 0;padding:0 6px 0 14px;background:var(--paper,#fff);border:2px solid var(--ink);border-radius:14px;min-height:54px}
-.hub>svg{width:22px;height:22px;flex:none;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round}
-.hub input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:16.5px;padding:12px 0;color:var(--ink);outline:none}
-.hmic{flex:none;width:44px;height:44px;border:0;border-radius:10px;background:var(--mist);display:grid;place-items:center;cursor:pointer}.hmic svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round}.hmic.on{background:var(--ochre)}
-.hubs{margin:6px 16px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper,#fff)}
-.hrow{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}.hrow:last-child{border-bottom:0}
-.hm{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:12px 14px;font:inherit;color:var(--ink);background:none;border:0;text-align:left;text-decoration:none;cursor:pointer}
-.hm svg{width:22px;height:22px;flex:none;stroke:var(--ink);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.hm .sub{font-size:12.5px;margin-left:4px}
-.hstar{flex:none;width:52px;border:0;border-left:1px solid var(--line);background:none;cursor:pointer;display:grid;place-items:center}.hstar svg{width:22px;height:22px;stroke:var(--ochre-deep);fill:none;stroke-width:1.8;stroke-linejoin:round}
 .tiles .tile,.tiles .tadd{position:relative;font:inherit;font-size:14px;font-weight:700;color:var(--ink);background:var(--mist);border:0;border-radius:12px;padding:16px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;text-align:center;word-break:keep-all;cursor:pointer;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 .tiles .tile .tn{line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .tiles .tile small{font-size:11.5px;font-weight:600;color:var(--ink2)}
@@ -323,7 +314,7 @@ function render(){
 }
 document.addEventListener("click",function(e){var b=e.target.closest("nav.tabs button");if(b){goTab(b.dataset.tab);}});
 (function(){var sx=0,sy=0,st=0,ok=false;
-  document.addEventListener("touchstart",function(e){ok=false;if($("#tabs").hidden||e.touches.length!==1||$("#sheetRoot").innerHTML)return;var tg=e.target;if(tg.closest&&tg.closest("input,textarea,select,.chips,.cmp,.svc3,.svc5,#tiles,.hubs"))return;var p=e.touches[0];sx=p.clientX;sy=p.clientY;st=Date.now();ok=true;},{passive:true});
+  document.addEventListener("touchstart",function(e){ok=false;if($("#tabs").hidden||e.touches.length!==1||$("#sheetRoot").innerHTML)return;var tg=e.target;if(tg.closest&&tg.closest("input,textarea,select,.chips,.cmp,.svc3,.svc5,#tiles"))return;var p=e.touches[0];sx=p.clientX;sy=p.clientY;st=Date.now();ok=true;},{passive:true});
   document.addEventListener("touchend",function(e){if(!ok)return;ok=false;var p=e.changedTouches[0],dx=p.clientX-sx,dy=p.clientY-sy;if(Date.now()-st>700||Math.abs(dx)<70||Math.abs(dy)>Math.abs(dx)*0.6)return;var i=TABS.indexOf(S.tab),j=i+(dx<0?1:-1);if(i<0||j<0||j>=TABS.length)return;goTab(TABS[j],dx<0?1:-1);},{passive:true});})();
 window.addEventListener("popstate",function(){if($("#sheetRoot").innerHTML){closeSheet();}});
 
@@ -410,7 +401,7 @@ function finishJoin(){S.me=joinMe;S.consent=true;S.joinedAt=Date.now();S.houses=
 function winterOn(){var d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m===11&&dd>=20)||m===12||m===1||m===2;}
 function leakDue(){var ym=today().slice(0,7);return S.houses.filter(function(h){return !S.checks.some(function(c){return c.kind==="누수"&&c.houseId===h.id&&String(c.date).slice(0,7)===ym;});});}
 var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 고객 관리(등록한 이름·전화번호), 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
-function vHome(){var h=hubHtml()+'<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+HERO_DECO+'</div>';
+function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+HERO_DECO+'</div>';
   var al='';
   if(winterOn())al+='<div class="box warn"><h3>겨울철 동파 대비</h3><p>열선이 설치된 곳은 전원이 연결되어 있는지, 정상적으로 작동하는지 확인해 주세요. 기온이 크게 떨어지는 날에는 수도꼭지를 조금 틀어 두면 동파를 막을 수 있어요.</p></div>';
   var due=leakDue();if(due.length)al+='<button type="button" class="item hot" data-go="leak" data-h="'+esc(due[0].id)+'"><span class="m"><span class="t">이번 달 누수 점검이 남아 있어요</span><span class="s" style="display:block">'+esc(due.map(function(x){return x.name;}).join(", "))+' · 계량기 사진 두 장이면 끝나요</span></span><span class="tag">점검하기</span></button>';
@@ -422,124 +413,72 @@ function vHome(){var h=hubHtml()+'<div class="box hero"><p class="hi">'+esc(S.me
   return h;}
 /* 우리 동네: 집 주소의 군·읍·면을 붙여 지도에서 찾기 (전화번호·전화 걸기는 지도에서) */
 var LOCAL=["주유소","철물점","LPG 가스","정화조 청소","전기 공사","열쇠·도어락"];
-var LOCAL_MORE=["하나로마트","농기계 수리","보일러 기름","약국","병원","동물병원","세탁소","택배","면사무소","카센터"];
-var LOC_MAX=20;
-function locList(){return Array.isArray(S.locT)?S.locT:LOCAL.map(function(x){return {q:x};});}
+var LOCAL_MORE=["보건소","하나로마트","농기계 수리","보일러 기름","약국","병원","동물병원","세탁소","택배","면사무소","카센터"];
+var LOC_MAX=16;
 function locSet(L){S.locT=L.slice(0,LOC_MAX);save();}
 function areaOf(H){var a=String(H&&H.addr||""),g=/(\S+(?:군|시))(?=\s|$)/.exec(a),m=/(\S+(?:읍|면))(?=\s|$)/.exec(a);return ((g?g[1]+" ":"")+(m?m[1]:"")).trim();}
 function locH(){return S.locH&&house(S.locH)?house(S.locH):mainHouse();}
-function vLocal(){var H=locH(),area=areaOf(H),L=locList(),ed=!!S.locEdit;
-  return '<div class="sec sechd"><h2>내 바로가기</h2><button type="button" class="lnk" data-go="locedit">'+(ed?"완료":"편집")+'</button></div><div class="box">'
-   +(S.houses.length>1&&L.some(function(x){return x.q;})?'<div class="chips" id="locHs">'+S.houses.map(function(x){return '<button type="button" data-loch="'+esc(x.id)+'" class="'+(x===H?"on":"")+'">'+esc(x.name)+'</button>';}).join("")+'</div>':'')
-   +'<p class="sub">'+(ed?'✕로 빼고, 끌어서 순서를 바꿔요. 다 되면 "완료"를 눌러 주세요.':(area?'<b style="color:var(--ink)">'+esc(area)+'</b> 근처 찾기와 자주 쓰는 전화·앱을 한곳에 모아 두세요. 타일을 길게 누르면 이름을 바꿀 수 있어요.':'자주 쓰는 전화·앱·동네 찾기를 한곳에 모아 두세요.'))+'</p>'
+function vLocal(){var H=locH(),L=locList(),ed=!!S.locEdit,sc=S.locScope||"m";
+  return '<div class="sec sechd"><h2>우리 동네</h2><button type="button" class="lnk" data-go="locedit">'+(ed?"완료":"편집")+'</button></div><div class="box">'
+   +(S.houses.length>1?'<div class="chips" id="locHs">'+S.houses.map(function(x){return '<button type="button" data-loch="'+esc(x.id)+'" class="'+(x===H?"on":"")+'">'+esc(x.name)+'</button>';}).join("")+'</div>':'')
+   +'<p class="sub">'+(ed?'✕로 빼고, 끌어서 순서를 바꿔요. 다 되면 "완료"를 눌러 주세요.':'찾을 범위를 고르고 타일을 누르면 지도에서 찾아요. 초록 타일은 바로 전화가 걸려요.')+'</p>'
+   +(ed?'':'<div class="chips scope" id="locSc" role="group" aria-label="찾는 범위">'+SCOPES.map(function(k){var t=scopeName(k,H);return t?'<button type="button" data-sc="'+k+'" class="'+(k===sc?"on":"")+'">'+esc(t)+'</button>':'';}).join("")+'</div>')
    +'<div class="tiles'+(ed?' edit':'')+'" id="tiles">'+L.map(function(x,i){return tileHtml(x,i,ed);}).join("")
-   +(L.length<LOC_MAX&&!ed?'<button type="button" class="tadd" data-go="locadd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>추가</button>':'')+'</div></div>';}
+   +(L.length<LOC_MAX&&!ed?'<button type="button" class="tadd" data-go="locadd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>추가</button>':'')+'</div>'
+   +(ed?'':'<form id="locF" class="search" role="search"><input id="locQ" type="search" enterkeyhint="search" placeholder="다른 곳 찾기 (예: 농기계 수리)" aria-label="우리 동네에서 찾기"><button type="submit">찾기</button></form>')+'</div>';}
+/* 찾는 범위: 면 → 군 → 도 → 전국 */
+var SCOPES=["m","g","d","all"];
+function addrParts(H){var a=String(H&&H.addr||"").trim().split(/\s+/),g=/(\S+(?:군|시))(?=\s|$)/.exec(H&&H.addr||""),m=/(\S+(?:읍|면|동))(?=\s|$)/.exec(H&&H.addr||"");return {d:a[0]&&/(도|특별자치도|광역시|특별시)$/.test(a[0])?a[0]:"",g:g?g[1]:"",m:m?m[1]:""};}
+function scopeName(k,H){var p=addrParts(H);return k==="m"?p.m:k==="g"?p.g:k==="d"?p.d.replace(/특별자치도$|도$/,"").replace(/광역시$|특별시$/,"")||"":"전국";}
+function scopeQuery(H){var p=addrParts(H),k=S.locScope||"m";if(k==="m"&&p.m)return (p.g+" "+p.m).trim();if((k==="m"||k==="g")&&p.g)return (p.d?p.d.replace(/특별자치도$/,"")+" ":"")+p.g;if(k!=="all"&&p.d)return p.d.replace(/특별자치도$/,"");return "";}
+/* ---------- 우리 동네 타일 ---------- */
 var LOCAL_IC={"주유소":'<path d="M4 20V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M3 20h12M6 8h6M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3"/>',"철물점":'<path d="M14 4l6 6-3 3-6-6zM11 7l-7 7a2 2 0 0 0 3 3l7-7"/>',"LPG 가스":'<path d="M12 3c3 4 6 6.5 6 10.5A6 6 0 0 1 6 13.5C6 10 9 8 9 5c1.5 1 2.5 2 3 3.5C12.5 7 12.5 5 12 3z"/>',"정화조 청소":'<path d="M3 16V9h11v7M14 11h4l3 3v2h-7M3 16h18M7 19a2 2 0 1 0 0-.1M17 19a2 2 0 1 0 0-.1"/>',"전기 공사":'<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',"열쇠·도어락":'<path d="M14.5 9.5a4 4 0 1 0-1.4 3L20 19.5M17 16.5l2-2M18.5 18l1.5-1.5"/><circle cx="10.5" cy="8.5" r="1"/>'};
 var LOC_PIN='<path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>';
 var LOC_TEL='<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>';
-/* ---------- 검색창 · 바로가기 ---------- */
-var IC={chat:'<path d="M4 5h16v11H9l-5 4z"/>',msg:'<path d="M3 6h18v12H3zM3 7l9 6 9-6"/>',tel:LOC_TEL,people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.5 3-5.5 6-5.5s5.5 2 6 5.5M16 4.5a3 3 0 0 1 0 6M18 14.8c1.8.7 3 2.5 3.3 5.2"/>',
- food:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 1.5-3 4-3 7h3v11"/>',bag:'<path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/>',car:'<path d="M5 16V11l2-5h10l2 5v5M3 16h18M7 19a1.5 1.5 0 1 0 0-.1M17 19a1.5 1.5 0 1 0 0-.1M5 11h14"/>',
- map:'<path d="M9 4l6 2 5-2v15l-5 2-6-2-5 2V6zM9 4v15M15 6v15"/>',web:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>',app:'<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
- play:'<path d="M5 3l15 9-15 9z"/>',bolt:'<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',gov:'<path d="M3 10l9-6 9 6M5 10v9M19 10v9M9 10v9M15 10v9M3 21h18"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
- wrench:'<path d="M14 6a4 4 0 0 0 5 5l-8 8a2 2 0 0 1-3-3l8-8a4 4 0 0 1-2-2z"/>',mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/>'};
-/* 사전: 이름, 다른 이름, 종류(app/url/go/contacts), 아이콘 */
-var DIRX=[
- {n:"카카오톡",k:"카톡 카카오 kakao 톡",app:"com.kakao.talk",sch:"kakaotalk",ic:"chat"},
- {n:"문자",k:"메시지 문자보내기 sms",url:"sms:",ic:"msg"},
- {n:"전화 걸기",k:"키패드 다이얼",url:"tel:",ic:"tel"},
- {n:"연락처에서 고르기",k:"연락처 주소록 전화번호부 전화번호 번호 전화 사람",contacts:1,ic:"people"},
- {n:"배달의민족",k:"배민 배달 치킨 자장면 짜장면 피자 족발 야식 음식",app:"com.sampleapp",ic:"food"},
- {n:"요기요",k:"배달 치킨 자장면 짜장면 피자 음식",app:"com.fineapp.yogiyo",ic:"food"},
- {n:"쿠팡이츠",k:"배달 치킨 자장면 짜장면 음식 쿠팡",app:"com.coupang.mobile.eats",ic:"food"},
- {n:"쿠팡",k:"쇼핑 로켓배송 장보기 자재",app:"com.coupang.mobile",ic:"bag"},
- {n:"당근",k:"당근마켓 중고 동네",app:"com.towneers.www",ic:"bag"},
- {n:"오늘의집",k:"인테리어 가구 자재 쇼핑",app:"net.bucketplace",ic:"bag"},
- {n:"네이버쇼핑",k:"쇼핑 자재 공구 네이버",url:"https://shopping.naver.com/",ic:"bag"},
- {n:"카카오T",k:"택시 카카오택시 대리 대리운전",app:"com.kakao.taxi",ic:"car"},
- {n:"카카오맵",k:"지도 길찾기 카카오",app:"net.daum.android.map",sch:"kakaomap",ic:"map"},
- {n:"네이버지도",k:"지도 길찾기 네이버",app:"com.nhn.android.nmap",sch:"nmap",ic:"map"},
- {n:"네이버",k:"검색 네이버",app:"com.nhn.android.search",ic:"web"},
- {n:"유튜브",k:"youtube 영상",app:"com.google.android.youtube",sch:"vnd.youtube",ic:"play"},
- {n:"정부24",k:"민원 등본 서류 주민센터 정부",url:"https://www.gov.kr/",ic:"gov"},
- {n:"한전ON",k:"전기 전기요금 정전 한전",url:"https://online.kepco.co.kr/",ic:"bolt"},
- {n:"건강보험",k:"건강보험공단 보험료 병원 건보",url:"https://www.nhis.or.kr/",ic:"gov"},
- {n:"날씨",k:"기상청 일기예보 날씨누리",url:"https://www.weather.go.kr/",ic:"sun"},
- {n:"고장·수리 접수",k:"접수 수리 고장 누수 동파 하수구 대원 설비",go:"book",ic:"wrench"},
- {n:"우리 집 점검",k:"우리집 점검 누수점검 집정보",go:"house",ic:"wrench"}];
-var IS_AND=/Android/i.test(navigator.userAgent);
-function appHref(x){var fb="https://play.google.com/store/apps/details?id="+x.app;if(!IS_AND)return fb;return "intent://#Intent;"+(x.sch?"scheme="+x.sch+";":"")+"package="+x.app+";S.browser_fallback_url="+encodeURIComponent(fb)+";end";}
-function nrm(t){return String(t||"").toLowerCase().replace(/[\s·.\-_]/g,"");}
-function tIcon(x){var d=x.app||x.url||x.go?DIRX.filter(function(z){return (x.app&&z.app===x.app)||(x.url&&z.url===x.url)||(x.go&&z.go===x.go);})[0]:null;
-  return x.tel?IC.tel:d?IC[d.ic]:x.app?IC.app:x.url?(/shopping|search\/all/.test(x.url)?IC.bag:IC.web):(LOCAL_IC[x.q]||LOC_PIN);}
+var IC={tel:LOC_TEL};
+function locList(){return (Array.isArray(S.locT)?S.locT:LOCAL.map(function(x){return {q:x};})).filter(function(x){return x&&(x.q||x.tel);});}
+function tIcon(x){return x.tel?IC.tel:(LOCAL_IC[x.q]||LOC_PIN);}
 function tName(x){return x.n||x.q||"";}
-/* 타일·후보 공통: 누르면 실행되는 요소 */
-function actAttr(x){if(x.tel)return 'href="tel:'+esc(dg(x.tel))+'"';if(x.app)return 'href="'+esc(appHref(x))+'"';if(x.url)return 'href="'+esc(x.url)+'"'+(/^https?:/.test(x.url)?' target="_blank" rel="noopener"':'');return '';}
 function tileHtml(x,i,ed){var inner='<svg viewBox="0 0 24 24">'+tIcon(x)+'</svg><span class="tn">'+esc(tName(x))+'</span>'+(x.tel?'<small>'+esc(x.tel)+'</small>':'');
   if(ed)return '<div class="tile" data-li="'+i+'">'+inner+'<button type="button" class="tx" data-ldel="'+i+'" aria-label="'+esc(tName(x))+' 빼기">✕</button></div>';
-  var a=actAttr(x);if(a)return '<a class="tile'+(x.tel?" tel":"")+'" data-li="'+i+'" '+a+'>'+inner+'</a>';
-  if(x.go)return '<button type="button" class="tile" data-li="'+i+'" data-go="tab" data-t="'+esc(x.go)+'">'+inner+'</button>';
+  if(x.tel)return '<a class="tile tel" data-li="'+i+'" href="tel:'+esc(dg(x.tel))+'">'+inner+'</a>';
   return '<button type="button" class="tile" data-li="'+i+'" data-loc="'+esc(x.q)+'">'+inner+'</button>';}
-function hubHtml(){return '<form id="hubF" class="hub" role="search"><svg viewBox="0 0 24 24" aria-hidden="true">'+IC.search+'</svg><input id="hubQ" type="search" enterkeyhint="go" autocomplete="off" placeholder="무엇이든 찾기 · 카톡, 주유소, 치킨" aria-label="무엇이든 찾기">'
-  +(window.webkitSpeechRecognition||window.SpeechRecognition?'<button type="button" class="hmic" id="hubMic" aria-label="말로 찾기"><svg viewBox="0 0 24 24">'+IC.mic+'</svg></button>':'')+'</form><div id="hubS" class="hubs" hidden></div>';}
-/* 검색어 → 후보 목록 */
-function hubFind(q){var t=nrm(q),out=[];if(!t)return out;var L=locList();
-  L.forEach(function(x){var n=nrm(tName(x));if(n.indexOf(t)>=0||t.indexOf(n)>=0&&n.length>1)out.push({x:x,mine:1,sc:n.indexOf(t)===0?9:8});});
-  DIRX.forEach(function(d){var n=nrm(d.n),ks=d.k.split(" ").map(nrm),sc=n.indexOf(t)===0?7:n.indexOf(t)>=0?6:ks.some(function(k){return k&&k.indexOf(t)===0;})?5:ks.some(function(k){return k&&(k.indexOf(t)>=0||t.indexOf(k)>=0&&k.length>1);})?4:0;
-    if(sc&&!out.some(function(o){return o.mine&&((d.app&&o.x.app===d.app)||(d.url&&o.x.url===d.url)||(d.go&&o.x.go===d.go));}))out.push({x:d.contacts?{contacts:1,n:d.n}:{n:d.n,app:d.app,sch:d.sch,url:d.url,go:d.go},sc:sc});});
-  LOCAL.concat(LOCAL_MORE).forEach(function(z){var n=nrm(z);if((n.indexOf(t)>=0||t.indexOf(n)>=0)&&!out.some(function(o){return o.x.q===z;}))out.push({x:{q:z},sc:n.indexOf(t)===0?6:3,near:1});});
-  out.sort(function(a,b){return b.sc-a.sc;});out=out.slice(0,6);
-  var raw=String(q).trim(),d=dg(raw);
-  if(/^[\d\s\-+()]+$/.test(raw)&&d.length>=8)out.unshift({x:{n:fmtTel(raw),tel:fmtTel(raw)},sc:10,askName:1});
-  else if(/^https?:\/\/\S+$/i.test(raw)){var pk=/[?&]id=([\w.]+)/.exec(raw);out.unshift({x:/play\.google\.com/.test(raw)&&pk?{n:"앱",app:pk[1]}:{n:raw.replace(/^https?:\/\/(www\.)?/,"").split("/")[0],url:raw},sc:10,askName:1});}
-  else{if(!out.some(function(o){return o.x.q&&nrm(o.x.q)===t;}))out.push({x:{q:raw},sc:1,near:1});
-    out.push({x:{n:raw+" 쇼핑",url:"https://msearch.shopping.naver.com/search/all?query="+encodeURIComponent(raw)},sc:1,shop:1});
-    out.push({x:{n:raw,url:"https://m.search.naver.com/search.naver?query="+encodeURIComponent(raw)},sc:1,web:1});}
-  return out;}
-var HUB=[];
-function hubLabel(o){var x=o.x;return o.near?'<b>'+esc(x.q)+'</b> <span class="sub">'+esc(areaOf(locH())||"우리 동네")+' 근처 지도</span>':o.shop?'<b>'+esc(x.n)+'</b> <span class="sub">네이버쇼핑에서 찾기</span>':o.web?'<b>'+esc(x.n)+'</b> <span class="sub">인터넷 검색</span>'
-  :x.contacts?'<b>'+esc(x.n)+'</b> <span class="sub">고른 사람을 바로가기로</span>':x.tel?'<b>'+esc(x.tel)+'</b> <span class="sub">전화 걸기 · ☆ 누르면 바로가기</span>':'<b>'+esc(tName(x))+'</b> <span class="sub">'+(o.mine?"내 바로가기":x.app?"앱 열기":x.go?"이 앱에서":"열기")+'</span>';}
-function hubDraw(){var box=$("#hubS"),q=$("#hubQ");if(!box||!q)return;HUB=hubFind(q.value);box.hidden=!HUB.length;
-  box.innerHTML=HUB.map(function(o,i){var x=o.x,a=x.contacts?'':actAttr(x),main=a?'<a class="hm" data-hi="'+i+'" '+a+'>':'<button type="button" class="hm" data-hi="'+i+'">';
-    return '<div class="hrow">'+main+'<svg viewBox="0 0 24 24">'+(x.contacts?IC.people:o.shop?IC.bag:o.web?IC.search:tIcon(x))+'</svg><span>'+hubLabel(o)+'</span>'+(a?'</a>':'</button>')
-     +(o.mine||o.web?'':'<button type="button" class="hstar" data-hs="'+i+'" aria-label="바로가기에 넣기"><svg viewBox="0 0 24 24">'+IC.star+'</svg></button>')+'</div>';}).join("");}
-function hubRun(i){var o=HUB[i];if(!o)return;var x=o.x;
-  if(x.contacts){pickContacts();return;}
-  if(x.go){$("#hubQ").value="";goTab(x.go);return;}
-  if(x.q){locSearch(x.q);return;}}
-function tileAdd(x,ask){var L=locList().slice();if(L.length>=LOC_MAX){toast("바로가기는 "+LOC_MAX+"개까지예요. 하나를 빼고 넣어 주세요.");return false;}
-  var same=L.some(function(y){return (x.tel&&dg(y.tel)===dg(x.tel))||(x.app&&y.app===x.app)||(x.url&&y.url===x.url)||(x.q&&y.q===x.q)||(x.go&&y.go===x.go);});if(same){toast("이미 바로가기에 있어요");return false;}
-  if(ask){tileSheet(-1,x);return false;}
-  L.push(x);locSet(L);if(!ask&&!tileAdd.quiet)toast("“"+tName(x)+"” 바로가기에 넣었어요");return true;}
+function tileAdd(x){var L=locList().slice();if(L.length>=LOC_MAX){toast("타일은 "+LOC_MAX+"개까지예요. 하나를 빼고 넣어 주세요.");return false;}
+  if(L.some(function(y){return (x.tel&&y.tel&&dg(y.tel)===dg(x.tel))||(x.q&&!x.tel&&y.q===x.q);})){toast("이미 있어요");return false;}
+  L.push(x);locSet(L);if(!tileAdd.quiet)toast("“"+tName(x)+"” 넣었어요");return true;}
 function tileShow(n){S.locEdit=false;render();var g=$("#tiles");if(!g)return;var t=g.querySelectorAll(".tile"),last=[].slice.call(t,-Math.max(1,n||1));if(!last.length)return;last[0].scrollIntoView({block:"center",behavior:"smooth"});last.forEach(function(e){e.classList.add("new");});setTimeout(function(){last.forEach(function(e){e.classList.remove("new");});},2200);}
-function pickContacts(){if(!(navigator.contacts&&navigator.contacts.select)){tileSheet(-1,{n:"",tel:""},"이 휴대폰 브라우저에서는 연락처 고르기가 안 돼요. 이름과 번호를 적어 주시면 바로가기로 넣어 드려요.");return;}
+var CAN_PICK=!!(navigator.contacts&&navigator.contacts.select);
+function pickContacts(){if(!(navigator.contacts&&navigator.contacts.select)){tileSheet(-1,{n:"",tel:""},"이 휴대폰 브라우저에서는 연락처 고르기가 안 돼요. 이름과 번호를 적어 주세요.");return;}
   try{sessionStorage.setItem("jr_pick",String(Date.now()));}catch(e){}
   navigator.contacts.select(["name","tel"],{multiple:true}).then(function(r){try{sessionStorage.removeItem("jr_pick");}catch(e){}var n=0,dup=0,no=0;tileAdd.quiet=true;
     (r||[]).forEach(function(c){var t=(c.tel||[]).filter(function(v){return dg(v).length>=8;})[0];if(!t){no++;return;}var x={n:String((c.name||[])[0]||fmtTel(t)).trim().slice(0,12)||fmtTel(t),tel:fmtTel(t)};
       if(locList().some(function(y){return y.tel&&dg(y.tel)===dg(x.tel);})){dup++;return;}if(tileAdd(x))n++;});tileAdd.quiet=false;
-    if(!(r||[]).length)return;hubClear();
-    if(n){tileShow(n);toast(n+"명을 바로가기에 넣었어요"+(dup?" (이미 있는 "+dup+"명 제외)":""));}
-    else toast(dup?"고른 분은 이미 바로가기에 있어요":no?"고른 연락처에 전화번호가 없어요":locList().length>=LOC_MAX?"바로가기가 꽉 찼어요. 하나를 빼고 넣어 주세요.":"넣지 못했어요");})
-  .catch(function(e){try{sessionStorage.removeItem("jr_pick");}catch(_){}tileAdd.quiet=false;toast("연락처를 불러오지 못했어요 ("+(e&&e.name||"오류")+"). 이름과 번호를 직접 적어 주세요.");tileSheet(-1,{n:"",tel:""});});}
-function hubClear(){var q=$("#hubQ");if(q)q.value="";var b=$("#hubS");if(b){b.hidden=true;b.innerHTML="";}}
+    if(!(r||[]).length)return;closeSheet();
+    if(n){tileShow(n);toast(n+"명을 넣었어요"+(dup?" (이미 있는 "+dup+"명 제외)":""));}
+    else toast(dup?"고른 분은 이미 있어요":no?"고른 연락처에 전화번호가 없어요":locList().length>=LOC_MAX?"타일이 꽉 찼어요. 하나를 빼고 넣어 주세요.":"넣지 못했어요");})
+  .catch(function(e){try{sessionStorage.removeItem("jr_pick");}catch(_){}tileAdd.quiet=false;toast("연락처를 불러오지 못했어요. 이름과 번호를 직접 적어 주세요.");tileSheet(-1,{n:"",tel:""});});}
+/* ＋ 추가: 단골 번호 · 동네 찾기 타일 */
+function locAddSheet(){var L=locList(),pool=LOCAL.concat(LOCAL_MORE).filter(function(q){return !L.some(function(x){return !x.tel&&x.q===q;});});
+  sheet("타일 추가",'<div class="sec" style="padding:0"><h2>단골 번호</h2></div><p class="sub">이장님, 복지사님, 기름집처럼 자주 거는 번호를 넣으면 누르자마자 전화가 걸려요.</p>'
+   +'<div style="display:flex;flex-direction:column;gap:8px">'+(CAN_PICK?'<button type="button" class="btn" id="laPick">내 연락처에서 고르기</button>':'')+'<button type="button" class="btn ghost" id="laTel">번호 직접 적기</button></div>'
+   +'<div class="sec" style="padding:16px 0 0"><h2>동네 찾기</h2></div><p class="sub">누르면 고른 범위에서 지도로 찾아요.</p>'
+   +(pool.length?'<div class="chips">'+pool.map(function(q){return '<button type="button" data-laq="'+esc(q)+'">+ '+esc(q)+'</button>';}).join("")+'</div>':'')
+   +'<div class="search" style="margin-top:10px"><input id="laQ" maxlength="12" placeholder="다른 이름 (예: 보건지소)" aria-label="찾을 곳 이름"><button type="button" id="laQOk">넣기</button></div>');
+  var pk=$("#laPick");if(pk)pk.onclick=pickContacts;$("#laTel").onclick=function(){tileSheet(-1,{n:"",tel:""});};
+  $("#laQOk").onclick=function(){var q=$("#laQ").value.trim();if(!q){$("#laQ").focus();return;}if(tileAdd({q:q.slice(0,12)})){closeSheet();tileShow(1);}};
+  [].forEach.call(document.querySelectorAll("[data-laq]"),function(b){b.onclick=function(){if(tileAdd({q:b.dataset.laq})){closeSheet();tileShow(1);}};});}
 /* 이름·번호 고치기 (i<0 이면 새로 넣기) */
-function tileSheet(i,nx,note){var L=locList(),x=i>=0?L[i]:nx,isTel=x.tel!=null&&!x.app&&!x.url;
-  sheet(i>=0?"바로가기 고치기":"바로가기 넣기",'<div style="display:flex;flex-direction:column;gap:12px">'+(note?'<p class="sub">'+esc(note)+'</p>':'')+'<div class="field"><label for="tsN">이름</label><input id="tsN" maxlength="12" value="'+esc(tName(x))+'" placeholder="예) 단골 기름집, 복지사님"></div>'
-   +(isTel?'<div class="field"><label for="tsT">전화번호</label><input id="tsT" type="tel" inputmode="tel" maxlength="20" value="'+esc(x.tel||"")+'"></div>':'<p class="sub">'+(x.app?"앱 바로가기":x.url?"사이트 바로가기":x.go?"이 앱 화면":"근처 지도 찾기")+'</p>')
-   +'<p class="err" id="tsErr" hidden></p><button type="button" class="btn hot" id="tsOk">'+(i>=0?"저장":"넣기")+'</button>'+(i>=0?'<button type="button" class="btn ghost" id="tsDel">바로가기에서 빼기</button>':'')+'</div>');
+function tileSheet(i,nx,note){var L=locList(),x=i>=0?L[i]:nx,isTel=x.tel!=null;
+  sheet(i>=0?"타일 고치기":"단골 번호 넣기",'<div style="display:flex;flex-direction:column;gap:12px">'+(note?'<p class="sub">'+esc(note)+'</p>':'')+'<div class="field"><label for="tsN">이름</label><input id="tsN" maxlength="12" value="'+esc(tName(x))+'" placeholder="예) 단골 기름집, 복지사님"></div>'
+   +(isTel?'<div class="field"><label for="tsT">전화번호</label><input id="tsT" type="tel" inputmode="tel" maxlength="20" value="'+esc(x.tel||"")+'"></div>':'<p class="sub">누르면 지도에서 "'+esc(x.q)+'"을(를) 찾아요.</p>')
+   +'<p class="err" id="tsErr" hidden></p><button type="button" class="btn hot" id="tsOk">'+(i>=0?"저장":"넣기")+'</button>'+(i>=0?'<button type="button" class="btn ghost" id="tsDel">빼기</button>':'')+'</div>');
   $("#tsOk").onclick=function(){var n=$("#tsN").value.trim(),t=isTel?$("#tsT").value.trim():"";if(!n){$("#tsErr").textContent="이름을 적어 주세요.";$("#tsErr").hidden=false;return;}if(isTel&&dg(t).length<8){$("#tsErr").textContent="전화번호를 확인해 주세요.";$("#tsErr").hidden=false;return;}
-    var y=JSON.parse(JSON.stringify(x));if(y.q&&!y.n&&n===y.q){}else{y.n=n.slice(0,12);}if(isTel)y.tel=fmtTel(t);
-    if(i>=0){var M=L.slice();M[i]=y;locSet(M);closeSheet();render();}else{if(!tileAdd(y))return;closeSheet();hubClear();tileShow(1);}};
+    var y=JSON.parse(JSON.stringify(x));if(!(y.q&&n===y.q))y.n=n.slice(0,12);else delete y.n;if(isTel)y.tel=fmtTel(t);
+    if(i>=0){var M=L.slice();M[i]=y;locSet(M);closeSheet();render();}else{if(!tileAdd(y))return;closeSheet();tileShow(1);}};
   var dl=$("#tsDel");if(dl)dl.onclick=function(){var M=L.slice();M.splice(i,1);locSet(M);closeSheet();render();};}
-/* 입력·엔터·별·마이크 */
-document.addEventListener("input",function(e){if(e.target&&e.target.id==="hubQ")hubDraw();});
-document.addEventListener("submit",function(e){if(e.target&&e.target.id==="hubF"){e.preventDefault();var f=$("#hubS .hm");if(f)f.click();}});
-document.addEventListener("click",function(e){var s=e.target.closest("[data-hs]");if(s){var o=HUB[+s.dataset.hs];if(o){if(o.x.contacts)pickContacts();else if(tileAdd(JSON.parse(JSON.stringify(o.x)),o.askName)){hubClear();tileShow(1);}}return;}
-  var h=e.target.closest("button.hm");if(h){hubRun(+h.dataset.hi);return;}
-  var d=e.target.closest("[data-ldel]");if(d){var M=locList().slice();M.splice(+d.dataset.ldel,1);locSet(M);render();return;}
-  if(e.target.closest("#hubMic"))hubMic();});
-function hubMic(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;var r=new SR();r.lang="ko-KR";r.interimResults=false;r.maxAlternatives=1;var m=$("#hubMic");if(m)m.classList.add("on");
-  r.onresult=function(ev){var t=ev.results[0][0].transcript.replace(/[.?!]$/,"");var q=$("#hubQ");if(q){q.value=t;hubDraw();}};r.onend=function(){var mm=$("#hubMic");if(mm)mm.classList.remove("on");};try{r.start();}catch(x){}}
+document.addEventListener("submit",function(e){if(e.target&&e.target.id==="locF"){e.preventDefault();locSearch($("#locQ").value);}});
+document.addEventListener("click",function(e){var d=e.target.closest("[data-ldel]");if(d){var M=locList().slice();M.splice(+d.dataset.ldel,1);locSet(M);render();return;}
+  var c=e.target.closest("[data-sc]");if(c){S.locScope=c.dataset.sc;save();[].forEach.call(document.querySelectorAll("#locSc button"),function(b){b.classList.toggle("on",b===c);});}});
 /* 길게 누르기(이름 고치기) · 편집 중 끌어서 옮기기 */
 (function(){var lp=null,fired=0,drag=null;
   document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest("#tiles .tile"))e.preventDefault();});
@@ -554,7 +493,7 @@ function hubMic(){var SR=window.SpeechRecognition||window.webkitSpeechRecognitio
     var L=locList(),ord=[].map.call($("#tiles").querySelectorAll(".tile"),function(z){return +z.dataset.li;});locSet(ord.map(function(k){return L[k];}));render();}
   document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);
   document.addEventListener("click",function(e){if(fired&&Date.now()-fired<1500&&e.target.closest&&e.target.closest("#tiles")){e.preventDefault();e.stopPropagation();}fired=0;},true);})();
-function locSearch(q){q=String(q||"").trim();if(!q)return;var u="https://m.map.naver.com/search2/search.naver?query="+encodeURIComponent((areaOf(locH())+" "+q).trim());var w=null;try{w=window.open(u,"_blank");}catch(e){}if(!w)location.href=u;}
+function locSearch(q){q=String(q||"").trim();if(!q)return;var u="https://m.map.naver.com/search2/search.naver?query="+encodeURIComponent((scopeQuery(locH())+" "+q).trim());var w=null;try{w=window.open(u,"_blank");}catch(e){}if(!w)location.href=u;}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-loc]");if(b){locSearch(b.dataset.loc);return;}var c=e.target.closest("[data-loch]");if(c){S.locH=c.dataset.loch;save();render();}});
 
 function stLine(r){return r.st==="confirmed"?"방문 "+dshow(r.vdate)+(r.vtime?" "+tshow(r.vtime):" · 시간은 따로 연락드려요"):r.st==="partner"?(r.pname||"협력업체")+"에서 직접 연락드려요"+(r.pphone?" ("+r.pphone+")":""):"";}
@@ -566,7 +505,7 @@ document.addEventListener("click",function(e){var b=e.target.closest("[data-go]"
   else if(g==="heatchk"){heatSheet(b.dataset.h);}
   else if(g==="hadd")houseSheet(null,function(h){S.chkH=h.id;render();});else if(g==="hedit")houseSheet(b.dataset.h);else if(g==="hinfo")infoSheet(b.dataset.h);
   else if(g==="chkh"){S.chkH=b.dataset.h;render();}else if(g==="tab"){goTab(b.dataset.t);}
-  else if(g==="me")meSheet();else if(g==="locedit"){S.locEdit=!S.locEdit;render();}else if(g==="locadd"){S.locEdit=false;render();var q=$("#hubQ");if(q){q.scrollIntoView({block:"center"});q.focus();}toast("찾아서 ☆을 누르면 바로가기에 들어가요");}else if(g==="backupm")backupSheet();else if(g==="sharem")shareSheet();else if(g==="privacy")privacySheet();else if(g==="backup")backup();else if(g==="restore")pickRestore();else if(g==="cdel")delCheck(b.dataset.id);else if(g==="hdel")delHouse(b.dataset.h);});
+  else if(g==="me")meSheet();else if(g==="locedit"){S.locEdit=!S.locEdit;render();}else if(g==="locadd"){locAddSheet();}else if(g==="backupm")backupSheet();else if(g==="sharem")shareSheet();else if(g==="privacy")privacySheet();else if(g==="backup")backup();else if(g==="restore")pickRestore();else if(g==="cdel")delCheck(b.dataset.id);else if(g==="hdel")delHouse(b.dataset.h);});
 
 /* ---------- 접수 ---------- */
 function hopts(b){b=b||{};return '<option value="시간 협의">시간 협의</option>'+HRS.map(function(x){return '<option value="'+x+':00">'+x+':00'+(b[x]?' (다른 일정 있음)':'')+'</option>';}).join("");}
@@ -729,7 +668,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261029c</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261029d</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
