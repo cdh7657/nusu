@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261031f">
+<meta name="page-ver" content="20261031g">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -449,7 +449,8 @@ function tileAdd(x){var L=locList().slice();if(L.length>=LOC_MAX){toast("타일�
   if(L.some(function(y){return (x.tel&&y.tel&&dg(y.tel)===dg(x.tel))||(x.q&&!x.tel&&y.q===x.q);})){toast("이미 있어요");return false;}
   L.push(x);locSet(L);if(!tileAdd.quiet)toast("“"+tName(x)+"” 넣었어요");return true;}
 function tileShow(n){S.locEdit=false;render();var g=$("#tiles");if(!g)return;var t=g.querySelectorAll(".tile"),last=[].slice.call(t,-Math.max(1,n||1));if(!last.length)return;last[0].scrollIntoView({block:"center",behavior:"smooth"});last.forEach(function(e){e.classList.add("new");});setTimeout(function(){last.forEach(function(e){e.classList.remove("new");});},2200);}
-var CAN_PICK=!!(navigator.contacts&&navigator.contacts.select);
+/* 갤럭시 크롬에서 연락처 고르기가 빈 값을 돌려줘서(2026-10-31 확인) 버튼을 쓰지 않음 */
+var CAN_PICK=false;
 function pickContacts(){if(!(navigator.contacts&&navigator.contacts.select)){tileSheet(-1,{n:"",tel:""},"이 휴대폰 브라우저에서는 연락처 고르기가 안 돼요. 이름과 번호를 적어 주세요.");return;}
   try{sessionStorage.setItem("jr_pick",String(Date.now()));}catch(e){}
   navigator.contacts.select(["name","tel"],{multiple:false}).then(function(r){try{sessionStorage.removeItem("jr_pick");}catch(e){}var n=0,dup=0,no=0;tileAdd.quiet=true;
@@ -463,11 +464,11 @@ function pickContacts(){if(!(navigator.contacts&&navigator.contacts.select)){til
 /* ＋ 추가: 단골 번호 · 동네 찾기 타일 */
 function locAddSheet(){var L=locList(),pool=LOCAL.concat(LOCAL_MORE).filter(function(q){return !L.some(function(x){return !x.tel&&x.q===q;});});
   sheet("타일 추가",'<div class="sec" style="padding:0"><h2>단골 번호</h2></div><p class="sub">이장님, 복지사님, 기름집처럼 자주 거는 번호를 넣으면 누르자마자 전화가 걸려요.</p>'
-   +'<div style="display:flex;flex-direction:column;gap:8px">'+(CAN_PICK?'<button type="button" class="btn" id="laPick">내 연락처에서 고르기</button>':'')+'<button type="button" class="btn ghost" id="laTel">번호 직접 적기</button></div>'
+   +'<div style="display:flex;flex-direction:column;gap:8px">'+(CAN_PICK?'<button type="button" class="btn" id="laPick">내 연락처에서 고르기</button>':'')+'<button type="button" class="btn" id="laTel">번호 넣기</button></div>'
    +'<div class="sec" style="padding:16px 0 0"><h2>동네 찾기</h2></div><p class="sub">누르면 고른 범위에서 지도로 찾아요.</p>'
    +(pool.length?'<div class="chips">'+pool.map(function(q){return '<button type="button" data-laq="'+esc(q)+'">+ '+esc(q)+'</button>';}).join("")+'</div>':'')
    +'<div class="search" style="margin-top:10px"><input id="laQ" maxlength="12" placeholder="다른 이름 (예: 보건지소)" aria-label="찾을 곳 이름"><button type="button" id="laQOk">넣기</button></div>');
-  var pk=$("#laPick");if(pk)pk.onclick=pickContacts;$("#laTel").onclick=function(){tileSheet(-1,{n:"",tel:""});};
+  var pk=$("#laPick");if(pk)pk.onclick=pickContacts;$("#laTel").onclick=function(){tileSheet(-1,{n:"",tel:""},"연락처 앱에서 번호를 길게 눌러 복사한 뒤 \"복사한 번호 붙여넣기\"를 누르면 번호가 채워져요.");};
   $("#laQOk").onclick=function(){var q=$("#laQ").value.trim();if(!q){$("#laQ").focus();return;}if(tileAdd({q:q.slice(0,12)})){closeSheet();tileShow(1);}};
   [].forEach.call(document.querySelectorAll("[data-laq]"),function(b){b.onclick=function(){if(tileAdd({q:b.dataset.laq})){closeSheet();tileShow(1);}};});}
 /* 이름·번호 고치기 (i<0 이면 새로 넣기) */
@@ -684,7 +685,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261031f</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261031g</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
