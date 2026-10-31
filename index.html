@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261031b">
+<meta name="page-ver" content="20261031d">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -423,7 +423,7 @@ function locH(){return S.locH&&house(S.locH)?house(S.locH):mainHouse();}
 function vLocal(){var H=locH(),L=locList(),ed=!!S.locEdit,sc=S.locScope||"m";
   return '<div class="sec sechd"><h2>우리 동네</h2><button type="button" class="lnk" data-go="locedit">'+(ed?"완료":"편집")+'</button></div><div class="box">'
    +(!ed&&S.houses.length>1&&L.some(function(x){return !x.tel;})?'<p class="sub" style="margin-bottom:-4px">어느 집 근처에서 찾을까요?</p><div class="chips" id="locHs">'+S.houses.map(function(x){return '<button type="button" data-loch="'+esc(x.id)+'" class="'+(x===H?"on":"")+'">'+esc(x.name)+'</button>';}).join("")+'</div>':'')
-   +'<p class="sub">'+(!L.length?'타일이 없어요. ＋ 추가로 자주 찾는 곳이나 단골 번호를 넣어 주세요.':ed?'✕로 빼고, 끌어서 순서를 바꿔요. 다 되면 "완료"를 눌러 주세요.':'찾을 범위를 고르고 타일을 누르면 지도에서 찾아요. 초록 타일은 바로 전화가 걸려요.')+'</p>'
+   +'<p class="sub">'+(!L.length?'타일이 없어요. ＋ 추가로 자주 찾는 곳이나 단골 번호를 넣어 주세요.':ed?'타일을 누르면 이름·전화번호를 고칠 수 있어요. ✕로 빼고, 끌어서 순서를 바꿔요. 다 되면 "완료"를 눌러 주세요.':'찾을 범위를 고르고 타일을 누르면 지도에서 찾아요.'+(L.some(function(x){return x.tel;})?' 초록 타일은 바로 전화가 걸려요. 고치려면 "편집"을 눌러 주세요.':' "편집"에서 타일을 눌러 전화번호를 넣으면 바로 전화가 걸리는 초록 타일이 돼요.'))+'</p>'
    +(ed||!L.some(function(x){return !x.tel;})?'':'<div class="chips scope" id="locSc" role="group" aria-label="찾는 범위">'+SCOPES.map(function(k){var t=scopeName(k,H);return t?'<button type="button" data-sc="'+k+'" class="'+(k===sc?"on":"")+'">'+esc(t)+'</button>':'';}).join("")+'</div>')
    +'<div class="tiles'+(ed?' edit':'')+'" id="tiles">'+L.map(function(x,i){return tileHtml(x,i,ed);}).join("")
    +(L.length<LOC_MAX&&(!ed||!L.length)?'<button type="button" class="tadd" data-go="locadd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>추가</button>':'')+'</div>'
@@ -472,9 +472,9 @@ function locAddSheet(){var L=locList(),pool=LOCAL.concat(LOCAL_MORE).filter(func
 /* 이름·번호 고치기 (i<0 이면 새로 넣기) */
 function tileSheet(i,nx,note){var L=locList(),x=i>=0?L[i]:nx,isTel=x.tel!=null;
   sheet(i>=0?"타일 고치기":"단골 번호 넣기",'<div style="display:flex;flex-direction:column;gap:12px">'+(note?'<p class="sub">'+esc(note)+'</p>':'')+'<div class="field"><label for="tsN">이름</label><input id="tsN" maxlength="12" value="'+esc(tName(x))+'" placeholder="예) 단골 기름집, 복지사님"></div>'
-   +(isTel?'<div class="field"><label for="tsT">전화번호</label><input id="tsT" type="tel" inputmode="tel" maxlength="20" value="'+esc(x.tel||"")+'"></div>':'<p class="sub">누르면 지도에서 "'+esc(x.q)+'"을(를) 찾아요.</p>')
+   +(isTel?'<div class="field"><label for="tsT">전화번호</label><input id="tsT" type="tel" inputmode="tel" maxlength="20" value="'+esc(x.tel||"")+'"></div>':'<div class="field"><label for="tsT">전화번호 (선택)</label><input id="tsT" type="tel" inputmode="tel" maxlength="20" placeholder="번호를 넣으면 누르자마자 전화가 걸려요"><span class="sub">비워 두면 지도에서 "'+esc(x.q)+'"을(를) 찾아요.</span></div>')
    +'<p class="err" id="tsErr" hidden></p><button type="button" class="btn hot" id="tsOk">'+(i>=0?"저장":"넣기")+'</button>'+(i>=0?'<button type="button" class="btn ghost" id="tsDel">빼기</button>':'')+'</div>');
-  $("#tsOk").onclick=function(){var n=$("#tsN").value.trim(),t=isTel?$("#tsT").value.trim():"";if(!n){$("#tsErr").textContent="이름을 적어 주세요.";$("#tsErr").hidden=false;return;}if(isTel&&dg(t).length<8){$("#tsErr").textContent="전화번호를 확인해 주세요.";$("#tsErr").hidden=false;return;}
+  $("#tsOk").onclick=function(){var n=$("#tsN").value.trim(),t=$("#tsT").value.trim();if(!isTel&&t){if(dg(t).length<8){$("#tsErr").textContent="전화번호를 확인해 주세요.";$("#tsErr").hidden=false;return;}var z={n:(n||x.q).slice(0,12),tel:fmtTel(t)};if(i>=0){var M2=L.slice();M2[i]=z;locSet(M2);closeSheet();render();}else{if(!tileAdd(z))return;closeSheet();tileShow(1);}return;}if(!n){$("#tsErr").textContent="이름을 적어 주세요.";$("#tsErr").hidden=false;return;}if(isTel&&dg(t).length<8){$("#tsErr").textContent="전화번호를 확인해 주세요.";$("#tsErr").hidden=false;return;}
     var y=JSON.parse(JSON.stringify(x));if(!(y.q&&n===y.q))y.n=n.slice(0,12);else delete y.n;if(isTel)y.tel=fmtTel(t);
     if(i>=0){var M=L.slice();M[i]=y;locSet(M);closeSheet();render();}else{if(!tileAdd(y))return;closeSheet();tileShow(1);}};
   var dl=$("#tsDel");if(dl)dl.onclick=function(){var M=L.slice();M.splice(i,1);locSet(M);closeSheet();render();};}
@@ -483,10 +483,13 @@ document.addEventListener("click",function(e){var d=e.target.closest("[data-ldel
   var c=e.target.closest("[data-sc]");if(c){S.locScope=c.dataset.sc;save();[].forEach.call(document.querySelectorAll("#locSc button"),function(b){b.classList.toggle("on",b===c);});}});
 /* 길게 누르기(이름 고치기) · 편집 중 끌어서 옮기기 */
 (function(){var lp=null,fired=0,drag=null;
-  document.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest("#tiles .tile"))e.preventDefault();});
+  /* 안드로이드는 길게 누르면 contextmenu가 먼저 와서 pointercancel로 타이머가 지워짐 → 여기서 바로 연다 */
+  function openLp(t){if(Date.now()-fired<1500)return;if(lp){clearTimeout(lp.tm);lp=null;}fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15);}catch(_){}tileSheet(+t.dataset.li);}
+  document.addEventListener("contextmenu",function(e){var t=e.target.closest&&e.target.closest("#tiles .tile");if(!t)return;e.preventDefault();if(!$("#tiles").classList.contains("edit"))openLp(t);});
+  document.addEventListener("click",function(e){var g=$("#tiles");if(!g||!g.classList.contains("edit"))return;var t=e.target.closest&&e.target.closest("#tiles .tile");if(!t||e.target.closest(".tx"))return;tileSheet(+t.dataset.li);});
   document.addEventListener("pointerdown",function(e){fired=0;var t=e.target.closest&&e.target.closest("#tiles .tile");if(!t||e.target.closest(".tx"))return;var x0=e.clientX,y0=e.clientY;
     if($("#tiles").classList.contains("edit")){drag={el:t,x0:x0,y0:y0,on:false,id:e.pointerId};return;}
-    lp={x0:x0,y0:y0,tm:setTimeout(function(){fired=Date.now();lp=null;try{navigator.vibrate&&navigator.vibrate(15);}catch(_){}tileSheet(+t.dataset.li);},550)};});
+    lp={x0:x0,y0:y0,tm:setTimeout(function(){lp=null;openLp(t);},500)};});
   document.addEventListener("pointermove",function(e){if(lp&&Math.hypot(e.clientX-lp.x0,e.clientY-lp.y0)>10){clearTimeout(lp.tm);lp=null;}
     if(!drag)return;var dx=e.clientX-drag.x0,dy=e.clientY-drag.y0;if(!drag.on){if(Math.hypot(dx,dy)<8)return;drag.on=true;drag.el.classList.add("drag");try{drag.el.setPointerCapture(drag.id);}catch(_){}}
     e.preventDefault();drag.el.style.transform="translate("+dx+"px,"+dy+"px)";drag.el.style.pointerEvents="none";var u=document.elementFromPoint(e.clientX,e.clientY),o=u&&u.closest&&u.closest("#tiles .tile");drag.el.style.pointerEvents="";
@@ -679,7 +682,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261031b</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261031d</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
