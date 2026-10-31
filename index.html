@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261031d">
+<meta name="page-ver" content="20261031e">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -452,13 +452,13 @@ function tileShow(n){S.locEdit=false;render();var g=$("#tiles");if(!g)return;var
 var CAN_PICK=!!(navigator.contacts&&navigator.contacts.select);
 function pickContacts(){if(!(navigator.contacts&&navigator.contacts.select)){tileSheet(-1,{n:"",tel:""},"이 휴대폰 브라우저에서는 연락처 고르기가 안 돼요. 이름과 번호를 적어 주세요.");return;}
   try{sessionStorage.setItem("jr_pick",String(Date.now()));}catch(e){}
-  navigator.contacts.select(["name","tel"],{multiple:true}).then(function(r){try{sessionStorage.removeItem("jr_pick");}catch(e){}var n=0,dup=0,no=0;tileAdd.quiet=true;
+  navigator.contacts.select(["name","tel"],{multiple:false}).then(function(r){try{sessionStorage.removeItem("jr_pick");}catch(e){}var n=0,dup=0,no=0;tileAdd.quiet=true;
     (r||[]).forEach(function(c){var t=(c.tel||[]).filter(function(v){return dg(v).length>=8;})[0];if(!t){no++;return;}var x={n:String((c.name||[])[0]||fmtTel(t)).trim().slice(0,12)||fmtTel(t),tel:fmtTel(t)};
       if(locList().some(function(y){return y.tel&&dg(y.tel)===dg(x.tel);})){dup++;return;}if(tileAdd(x))n++;});tileAdd.quiet=false;
-    if(!(r||[]).length)return;closeSheet();
+    if(!(r||[]).length){toast("고른 분이 없어요. 연락처 목록에서 사람 이름을 눌러 주세요.");return;}closeSheet();
     if(n){tileShow(n);toast(n+"명을 넣었어요"+(dup?" (이미 있는 "+dup+"명 제외)":""));}
     else toast(dup?"고른 분은 이미 있어요":no?"고른 연락처에 전화번호가 없어요":locList().length>=LOC_MAX?"타일이 꽉 찼어요. 하나를 빼고 넣어 주세요.":"넣지 못했어요");})
-  .catch(function(e){try{sessionStorage.removeItem("jr_pick");}catch(_){}tileAdd.quiet=false;toast("연락처를 불러오지 못했어요. 이름과 번호를 직접 적어 주세요.");tileSheet(-1,{n:"",tel:""});});}
+  .catch(function(e){try{sessionStorage.removeItem("jr_pick");}catch(_){}tileAdd.quiet=false;tileSheet(-1,{n:"",tel:""},"연락처를 불러오지 못했어요("+((e&&e.name)||"오류")+"). 이름과 번호를 여기에 적어 주세요.");});}
 /* ＋ 추가: 단골 번호 · 동네 찾기 타일 */
 function locAddSheet(){var L=locList(),pool=LOCAL.concat(LOCAL_MORE).filter(function(q){return !L.some(function(x){return !x.tel&&x.q===q;});});
   sheet("타일 추가",'<div class="sec" style="padding:0"><h2>단골 번호</h2></div><p class="sub">이장님, 복지사님, 기름집처럼 자주 거는 번호를 넣으면 누르자마자 전화가 걸려요.</p>'
@@ -682,7 +682,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261031d</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261031e</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>등록한 집 정보(주소·연락받을 번호·주택 종류 등)는 접수할 때 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
