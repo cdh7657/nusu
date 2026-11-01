@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261101b">
+<meta name="page-ver" content="20261101c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -188,19 +188,6 @@ nav.tabs button.on::before{content:"";position:absolute;top:0;left:30%;right:30%
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:92px;background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:12px;font-size:14px;font-weight:700;z-index:50;max-width:90%;text-align:center}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 details{font-size:14px;color:var(--muted)}details summary{cursor:pointer;color:var(--ink2);font-weight:700}details p{margin:8px 0 0}
-.hq{display:flex;flex-direction:column;gap:10px}
-.hq h3{font-size:17px}
-.hq .row2{display:flex;gap:8px;align-items:stretch}
-.hq .row2 .btn{margin-top:0}
-.hq .row2 .mic{flex:none;width:auto;padding:0 16px}
-.hqa{border-radius:14px;padding:14px 16px;background:var(--mist);display:flex;flex-direction:column;gap:10px}
-.hqa.urgent{background:var(--ochre-soft);border:2px solid var(--ochre-deep)}
-.hqa.visit{background:var(--ok-soft)}
-.hqa .qq{font-size:13.5px;color:var(--muted)}
-.hqa .aa{white-space:pre-line;line-height:1.6}
-.hqa .who{font-size:12.5px;color:var(--muted)}
-.hqa .acts{display:flex;flex-direction:column;gap:8px}
-.hqa .acts .btn{margin-top:0;text-align:center;text-decoration:none}
 .empty{padding:20px 18px;color:var(--muted);background:var(--paper);font-size:14px}
 .foot{text-align:center;color:var(--muted);font-size:12.5px;padding:16px}
 main>details{background:var(--paper);padding:16px 18px}
@@ -255,9 +242,7 @@ function picking(){try{var t=+sessionStorage.getItem("jr_pick");return t&&Date.n
 
 (function(){
 "use strict";
-var DB_URL="https://daewon-booking-default-rtdb.asia-southeast1.firebasedatabase.app";
-/* AI 물어보기 서버 주소: 배포 후 …run.app 주소를 따옴표 안에 넣으세요. 비어 있으면 질문은 "문의"로 대원에 전달됩니다. */
-var AI_URL="";var CALL_NO="010-2068-5289";
+var DB_URL="https://daewon-booking-default-rtdb.asia-southeast1.firebasedatabase.app";var CALL_NO="010-2068-5289";
 var PAGE="https://cdh7657.github.io/nusu/";
 var KEY="jr2";
 var $=function(s){return document.querySelector(s);};
@@ -424,53 +409,10 @@ function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'�
   var due=leakDue();if(due.length)al+='<button type="button" class="item hot" data-go="leak" data-h="'+esc(due[0].id)+'"><span class="m"><span class="t">이번 달 누수 점검이 남아 있어요</span><span class="s" style="display:block">'+esc(due.map(function(x){return x.name;}).join(", "))+' · 계량기 사진 두 장이면 끝나요</span></span><span class="tag">점검하기</span></button>';
   S.reqs.filter(function(r){return (r.st==="confirmed"&&r.vdate>=plus(0))||(r.st==="partner"&&Date.now()-(r.stAt||0)<7*864e5)||(r.st==="canceled"&&Date.now()-(r.stAt||0)<3*864e5);}).sort(function(a,b){return (a.vdate||"").localeCompare(b.vdate||"");}).forEach(function(r){var H=house(r.houseId);
     var cx=r.st==="canceled";al='<button type="button" class="item '+(cx?"hot":"ok")+'" data-go="tab" data-t="book"><span class="m"><span class="t">'+(r.st==="confirmed"?"방문 일정이 확정됐어요":cx?"방문 일정이 취소됐어요":"접수하신 일을 업체에 연결했어요")+'</span><span class="s" style="display:block">'+esc(r.work)+' · '+esc(H?H.name:(r.houseName||""))+'</span><span class="s" style="display:block;font-weight:800;color:'+(cx?"var(--ochre-deep)":"var(--ok)")+'">'+esc(stLine(r))+'</span></span><span class="tag'+(cx?"":" ok")+'">보기</span></button>'+al;});
-  h+=hqBox();
   h+='<div class="sec"><h2>알림</h2></div>'+(al||'<div class="empty">새 알림이 없어요.</div>');
   h+=vLocal();
   h+='<div class="menu">'+mrow("sharem","share","이웃·친구에게 소개하기","카톡·문자·QR로 보내기")+'</div>';
   return h;}
-/* ---------- 홈: 궁금한 거 물어보기 (AI 상담 창구) ----------
-   answer = 바로 답 / visit = 와서 봐야 함 → 접수 / urgent = 급함 → 먼저 할 일 + 바로 전화
-   AI_URL이 없거나 답을 못 받으면 질문을 "문의"로 대원에 남기게 안내 */
-var HQ=null,HQT="";
-var SR=window.SpeechRecognition||window.webkitSpeechRecognition||null;
-function hqBox(){var busy=HQ&&HQ.st==="busy";
-  var s='<div class="box hq" id="hqBox"><h3>궁금한 거 물어보기</h3><p class="sub">고장이 아니어도 괜찮아요. 집에 관한 건 뭐든 물어보세요. 와서 봐야 하는 일이면 바로 접수로 이어 드려요.</p>';
-  s+='<textarea id="hq" maxlength="800" placeholder="예) 한파 때 수도가 얼지 않게 하려면 어떻게 하나요?" style="min-height:84px">'+esc(HQT)+'</textarea>';
-  s+='<div class="row2">'+(SR?'<button type="button" class="btn ghost mic" data-go="hmic">말로</button>':'')+'<button type="button" class="btn hot" data-go="hask"'+(busy?" disabled":"")+'>'+(busy?"답을 찾는 중…":"물어보기")+'</button></div>';
-  if(HQ&&HQ.st!=="busy")s+=hqAns();
-  return s+'</div>';}
-function hqAns(){var q=HQ.q,H=mainHouse(),hid=H?H.id:"";
-  var bk=function(lbl,cls){return '<button type="button" class="btn '+cls+'" data-go="book" data-w="'+esc(HQ.d&&HQ.d.work||"")+'" data-h="'+esc(hid)+'" data-n="'+esc(q)+'">'+lbl+'</button>';};
-  var call='<a class="btn hot" href="tel:'+CALL_NO+'">바로 전화하기</a>';
-  var ask='<button type="button" class="btn ghost" data-go="ask" data-n="'+esc(q)+'">대원에 직접 물어보기</button>';
-  var top='<p class="qq">물어보신 것: '+esc(q.length>80?q.slice(0,80)+"…":q)+'</p>';
-  if(HQ.st==="err")return '<div class="hqa">'+top+'<p class="aa">'+esc(HQ.msg||"지금은 바로 답해 드리기 어려워요. 문의로 남겨 주시면 확인하고 전화나 문자로 답해 드릴게요.")+'</p><div class="acts">'+ask+'</div></div>';
-  var d=HQ.d,k=d.kind;
-  var acts=k==="urgent"?call+bk("접수도 남기기","ghost"):k==="visit"?bk("이 내용으로 접수하기","hot")+ask:ask;
-  return '<div class="hqa '+k+'">'+top+(k==="urgent"?'<p style="font-weight:800;color:var(--ochre-deep)">급한 상황이에요</p>':'')+'<p class="aa">'+esc(d.answer)+'</p><div class="acts">'+acts+'</div><p class="who">AI가 드린 안내예요. 확실하지 않거나 걱정되면 전화 주세요.</p></div>';}
-function hqDraw(){var b=$("#hqBox");if(!b){if(S.tab==="home")render();return;}var t=document.createElement("div");t.innerHTML=hqBox();b.replaceWith(t.firstChild);}
-function hAsk(){var e=$("#hq");var q=String(e?e.value:HQT).trim();HQT=q;
-  if(q.length<2){toast("궁금한 내용을 적어 주세요");if(e)e.focus();return;}
-  if(!AI_URL){HQ=null;askSheet(q);return;}
-  if(navigator.onLine===false){HQ={q:q,st:"err",msg:"인터넷이 연결되지 않았어요. 연결된 뒤 다시 눌러 주세요."};hqDraw();return;}
-  var H=mainHouse();HQ={q:q,st:"busy"};hqDraw();
-  var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort();},20000);
-  fetch(AI_URL,{method:"POST",signal:ctl?ctl.signal:undefined,headers:{"Content-Type":"application/json"},body:JSON.stringify({task:"ask",text:q,name:S.me&&S.me.name||"",phone:S.me&&S.me.phone||"",house:H?H.name:"",area:H?areaOf(H):"",houseInfo:H?infoLine(H).join(" · "):""})})
-   .then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {r:r,j:j};});})
-   .then(function(x){clearTimeout(tm);if(HQ&&HQ.q!==q)return;
-     if(x.r.status===429){HQ={q:q,st:"err",msg:"오늘은 물어보기를 많이 쓰셨어요. 문의로 남겨 주시면 확인하고 답해 드릴게요."};}
-     else if(x.r.ok&&x.j.ok&&x.j.data&&x.j.data.answer){HQ={q:q,st:"done",d:x.j.data};}
-     else HQ={q:q,st:"err"};
-     hqDraw();})
-   .catch(function(){clearTimeout(tm);if(HQ&&HQ.q!==q)return;HQ={q:q,st:"err"};hqDraw();});}
-function hMic(){if(!SR)return;try{var r=new SR();r.lang="ko-KR";r.interimResults=false;r.maxAlternatives=1;
-  var b=document.querySelector('[data-go="hmic"]');if(b){b.textContent="듣는 중…";b.disabled=true;}
-  r.onresult=function(ev){var t=(ev.results[0]&&ev.results[0][0]&&ev.results[0][0].transcript)||"";var e=$("#hq");if(e){e.value=(e.value.trim()?e.value.trim()+" ":"")+t;HQT=e.value;}};
-  r.onerror=function(ev){if(ev&&ev.error==="not-allowed")toast("마이크 사용을 허용해 주세요");};
-  r.onend=function(){var b2=document.querySelector('[data-go="hmic"]');if(b2){b2.textContent="말로";b2.disabled=false;}};
-  r.start();}catch(e){toast("이 휴대폰에서는 말로 입력을 쓸 수 없어요");}}
-document.addEventListener("input",function(e){if(e.target&&e.target.id==="hq")HQT=e.target.value;});
 /* 우리 동네: 집 주소의 군·읍·면을 붙여 지도에서 찾기 (전화번호·전화 걸기는 지도에서) */
 var LOCAL=["주유소","철물점","LPG 가스","정화조 청소","전기 공사","열쇠·도어락"];
 var LOCAL_MORE=["보건소","하나로마트","농기계 수리","보일러 기름","약국","병원","동물병원","세탁소","택배","면사무소","카센터"];
@@ -566,7 +508,6 @@ function stLine(r){return r.st==="canceled"?"방문 일정이 취소됐어요. �
 function tshow(t){var h=+String(t).slice(0,2);if(isNaN(h))return t;return (h<12?"오전 ":"오후 ")+(h>12?h-12:h)+"시"+(String(t).slice(3,5)!=="00"?" "+String(t).slice(3,5)+"분":"");}
 function reqItem(r){var H=house(r.houseId),tg=r.kind==="전화"?"바로 전화":r.kind==="문의"?"답변 준비 중":r.st==="confirmed"?"일정 확정":r.st==="partner"?"업체 연결":r.st==="canceled"?"취소됨":r.st==="done"?"완료":r.st==="skipped"?"진행 안 함":r.st==="answered"?"답변 완료":"확인 중";return '<div class="item'+(r.kind==="문의"?"":" ok")+'"><span class="m"><span class="t">'+esc(r.kind==="문의"?"문의":r.work)+' <span class="tag'+(r.kind==="문의"?"":" ok")+'">'+tg+'</span></span><span class="s" style="display:block">'+esc(new Date(r.ts).toLocaleDateString("ko-KR",{month:"numeric",day:"numeric"}))+' 접수 · '+esc(H?H.name:(r.houseName||""))+(r.st?"":r.dates&&r.dates.length?' · 희망 '+esc(r.dates.map(dshow).join(", ")):"")+'</span>'+(r.st?'<span class="s" style="display:block;font-weight:800;color:var(--ok)">'+esc(stLine(r))+'</span>':'')+(r.note?'<span class="s" style="display:block">'+esc(r.note.slice(0,60))+(r.note.length>60?"…":"")+'</span>':'')+'</span></div>';}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-go]");if(!b)return;var g=b.dataset.go;
-  if(g==="hask"){hAsk();return;}if(g==="hmic"){hMic();return;}
   if(g==="book")bookSheet(b.dataset.w||"",b.dataset.h||"",b.dataset.n||"");else if(g==="ask")askSheet(b.dataset.n||"");else if(g==="install")installGuide();else if(g==="share")share();else if(g==="qr")qrShow();
   else if(g==="leak"){closeSheet();S.tab="house";S.chkH=b.dataset.h||S.chkH;render();scrollTo(0,0);leakSheet(S.chkH);}
   else if(g==="heatchk"){heatSheet(b.dataset.h);}
