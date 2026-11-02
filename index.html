@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261102a">
+<meta name="page-ver" content="20261102c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -342,7 +342,10 @@ function addrSearch(cb){
 
 /* ---------- 집 정보 폼 (등록·수정 공용) ---------- */
 function stepper(id,label,v){return '<div class="step"><span>'+label+'</span><button type="button" data-st="'+id+'" data-d="-1" aria-label="'+label+' 줄이기">−</button><b id="'+id+'">'+(v||0)+'</b><button type="button" data-st="'+id+'" data-d="1" aria-label="'+label+' 늘리기">+</button></div>';}
-function chips(id,list,v){return '<div class="chips" data-chips="'+id+'">'+list.map(function(x){return '<button type="button" data-v="'+esc(x)+'" class="'+(v===x?"on":"")+'">'+esc(x)+'</button>';}).join("")+'</div>';}
+function chips(id,list,v,multi){var vs=multi?parts(v):[v];return '<div class="chips" data-chips="'+id+'"'+(multi?' data-multi="1"':'')+'>'+list.map(function(x){return '<button type="button" data-v="'+esc(x)+'" class="'+(vs.indexOf(x)>=0?"on":"")+'">'+esc(x)+'</button>';}).join("")+'</div>';}
+/* 물·난방은 여러 개 고를 수 있음: "상수도, 지하수" 처럼 쉼표로 저장 */
+function parts(v){return String(v||"").split(/\s*,\s*/).filter(Boolean);}
+function has(v,x){return parts(v).indexOf(x)>=0;}
 function houseForm(h,first){h=h||{};
   return '<div class="field"><label for="hName">집 이름</label><input id="hName" maxlength="20" value="'+esc(h.name||(first?"우리 집":""))+'" placeholder="예) 우리 집, 어머니 댁, 봉평 별장"></div>'
    +'<div class="field"><label for="hAddr">주소</label><div class="addr"><input id="hAddr" readonly placeholder="주소 검색을 눌러 주세요" value="'+esc(h.addr||"")+'"><button type="button" id="hAddrB">주소 검색</button></div><input id="hAddr2" maxlength="100" placeholder="상세 주소 (동·호수, 집 위치 설명)" value="'+esc(h.addr2||"")+'" aria-label="상세 주소"></div>'
@@ -352,23 +355,23 @@ function houseInfoForm(h){h=h||{};
    +'<div class="field"><label for="hArea">전체 크기 (평, 대략)</label><input id="hArea" inputmode="numeric" maxlength="4" value="'+esc(h.area||"")+'" placeholder="예) 30"></div>'
    +'<div class="box" style="gap:8px;padding:10px 12px">'+stepper("hLiving","거실",h.living==null?1:h.living)+stepper("hRooms","방",h.rooms==null?2:h.rooms)+stepper("hBaths","화장실",h.baths==null?1:h.baths)+'</div>'
    +'<div class="field"><span class="lbl">다용도실</span>'+chips("utility",["있음","없음"],h.utility)+'</div>'
-   +'<div class="field"><span class="lbl">물</span>'+chips("water",["상수도","지하수"],h.water)+'</div>'
+   +'<div class="field"><span class="lbl">물</span>'+chips("water",["상수도","지하수"],h.water,true)+'<span class="sub">중복 선택 가능</span></div>'
    +'<div class="field"><span class="lbl">하수</span>'+chips("sewage",["정화조","오수합병"],h.sewage)+'<span class="sub">잘 모르시면 비워 두세요</span></div>'
-   +(function(){var hv=h.heat||"",cu=hv&&HEATS.indexOf(hv)<0;return '<div class="field"><span class="lbl">난방</span>'+chips("heat",HEATS,cu?"기타":hv)+'<input id="hHeatEt" maxlength="20" placeholder="난방 종류를 적어 주세요 (예: 펠릿보일러)" aria-label="기타 난방 종류" value="'+esc(cu?hv:"")+'"'+(cu||hv==="기타"?"":" hidden")+'></div>';})()
+   +(function(){var ps=parts(h.heat),known=ps.filter(function(x){return HEATS.indexOf(x)>=0;}),cu=ps.filter(function(x){return HEATS.indexOf(x)<0;});if(cu.length&&known.indexOf("기타")<0)known.push("기타");return '<div class="field"><span class="lbl">난방</span>'+chips("heat",HEATS,known.join(", "),true)+'<span class="sub">중복 선택 가능</span><input id="hHeatEt" maxlength="20" placeholder="난방 종류를 적어 주세요 (예: 펠릿보일러)" aria-label="기타 난방 종류" value="'+esc(cu.join(", "))+'"'+(known.indexOf("기타")>=0?"":" hidden")+'></div>';})()
    +'<p class="sub">건물 구조, 계량기·메인 밸브 위치처럼 전문가가 봐야 아는 것은 방문할 때 저희가 확인해 기록해 드려요.</p>';}
 function wireForms(root){root=root||document;
-  [].forEach.call(root.querySelectorAll("[data-chips] button"),function(b){b.onclick=function(){var p=b.parentNode,on=!b.classList.contains("on");[].forEach.call(p.children,function(x){x.classList.remove("on");});if(on)b.classList.add("on");
-    if(p.dataset.chips==="heat"){var et=document.getElementById("hHeatEt");if(et){et.hidden=!(on&&b.dataset.v==="기타");if(!et.hidden)et.focus();}}};});
+  [].forEach.call(root.querySelectorAll("[data-chips] button"),function(b){b.onclick=function(){var p=b.parentNode,on=!b.classList.contains("on");if(!p.dataset.multi)[].forEach.call(p.children,function(x){x.classList.remove("on");});b.classList.toggle("on",on);
+    if(p.dataset.chips==="heat"){var et=document.getElementById("hHeatEt");if(et){var was=et.hidden;et.hidden=!p.querySelector('[data-v="기타"].on');if(was&&!et.hidden)et.focus();}}};});
   [].forEach.call(root.querySelectorAll("[data-st]"),function(b){b.onclick=function(){var e=document.getElementById(b.dataset.st);var n=Math.max(0,Math.min(20,(+e.textContent||0)+(+b.dataset.d)));e.textContent=n;};});
   var ab=root.querySelector("#hAddrB");if(ab)ab.onclick=function(){addrSearch(function(a){$("#hAddr").value=a;$("#hAddr2").focus();});};
   var me=root.querySelector("#hMe");if(me)me.onchange=function(){var t=$("#hTel");t.hidden=me.checked;if(!me.checked)t.focus();};}
-function chipVal(id){var b=document.querySelector('[data-chips="'+id+'"] button.on');return b?b.dataset.v:"";}
+function chipVal(id){return [].map.call(document.querySelectorAll('[data-chips="'+id+'"] button.on'),function(b){return b.dataset.v;}).join(", ");}
 function readHouse(h){h=h||{};var v=function(i){var e=document.getElementById(i);return e?e.value.trim():"";};
   h.name=v("hName")||"우리 집";h.addr=v("hAddr");h.addr2=v("hAddr2");var t=v("hTel");if(dg(t).length<9||dg(t)===dg(myPhone())){h.contactMe=true;h.contact="";}else{h.contactMe=false;h.contact=fmtTel(t);}
   return h;}
 function readInfo(h){if(!document.querySelector('[data-chips="type"]'))return h;
   h.type=chipVal("type");h.area=document.getElementById("hArea").value.replace(/\D/g,"");h.living=+$("#hLiving").textContent;h.rooms=+$("#hRooms").textContent;h.baths=+$("#hBaths").textContent;
-  h.utility=chipVal("utility");h.water=chipVal("water");h.sewage=chipVal("sewage");h.heat=chipVal("heat");if(h.heat==="기타"){var et=document.getElementById("hHeatEt");if(et&&et.value.trim())h.heat=et.value.trim().slice(0,20);}h.infoAt=Date.now();return h;}
+  h.utility=chipVal("utility");h.water=chipVal("water");h.sewage=chipVal("sewage");h.heat=chipVal("heat");if(has(h.heat,"기타")){var et=document.getElementById("hHeatEt"),tx=et?et.value.trim().slice(0,20):"";if(tx)h.heat=parts(h.heat).map(function(x){return x==="기타"?tx:x;}).join(", ");}h.infoAt=Date.now();return h;}
 function infoLine(h){var a=[];if(h.type)a.push(h.type);if(h.area)a.push(h.area+"평");if(h.rooms!=null&&h.infoAt)a.push("방 "+h.rooms);if(h.baths!=null&&h.infoAt)a.push("화장실 "+h.baths);if(h.utility==="있음")a.push("다용도실");if(h.water)a.push(h.water);if(h.sewage)a.push(h.sewage);if(h.heat)a.push(h.heat);return a;}
 
 /* ---------- 연락받을 번호 칸 (입력 + [내 번호]) ---------- */
@@ -633,10 +636,10 @@ function vHouses(){if(!S.chkH||!house(S.chkH))S.chkH=(mainHouse()||{}).id;var H=
     +'<div class="btns"><button type="button" class="btn sm" data-go="hinfo" data-h="'+esc(H.id)+'">집 정보</button><button type="button" class="btn sm ghost" data-go="hedit" data-h="'+esc(H.id)+'">이름·주소·연락처</button></div></div>';
   var ym=today().slice(0,7),doneL=S.checks.some(function(c){return c.kind==="누수"&&c.houseId===H.id&&String(c.date).slice(0,7)===ym;}),pend=S.pending[H.id];
   h+='<div class="sec"><h2>'+esc(H.name)+' 점검</h2></div>';
-  h+='<div class="box"><div style="display:flex;justify-content:space-between;gap:8px"><h3>누수 자가체크</h3><span class="tag'+(doneL?" ok":"")+'">'+(doneL?"이번 달 완료":"한 달에 한 번")+'</span></div><p>'+(H.water==="지하수"?"물을 쓰지 않을 때 펌프가 혼자 켜지는지 확인해요.":"물을 모두 잠그고 계량기 숫자를 두 번 찍어 비교해요. 오래된 집일수록 모르는 사이 새는 경우가 많아요.")+'</p>'
+  h+='<div class="box"><div style="display:flex;justify-content:space-between;gap:8px"><h3>누수 자가체크</h3><span class="tag'+(doneL?" ok":"")+'">'+(doneL?"이번 달 완료":"한 달에 한 번")+'</span></div><p>'+(has(H.water,"지하수")?"물을 쓰지 않을 때 펌프가 혼자 켜지는지 확인해요.":"물을 모두 잠그고 계량기 숫자를 두 번 찍어 비교해요. 오래된 집일수록 모르는 사이 새는 경우가 많아요.")+'</p>'
    +(pend&&pend.p1?'<p class="sub">사진 1을 '+esc(new Date(pend.at).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}))+'에 찍어 두셨어요. 이어서 사진 2를 찍어 주세요.</p>':'')
    +'<button type="button" class="btn" data-go="leak" data-h="'+esc(H.id)+'">'+(pend&&pend.p1?"이어서 하기":"점검 시작")+'</button></div>';
-  if(OIL.indexOf(H.heat)>=0)h+='<div class="box"><div style="display:flex;justify-content:space-between;gap:8px"><h3>난방수 색 확인</h3><span class="tag">난방 시작 전</span></div><p>보일러 분배기의 에어체크 밸브로 난방수 색을 봐요. 녹이나 찌꺼기가 많으면 난방이 약해지고 기름도 더 들어요.</p><button type="button" class="btn" data-go="heatchk" data-h="'+esc(H.id)+'">확인하기</button></div>';
+  if(parts(H.heat).some(function(x){return OIL.indexOf(x)>=0;}))h+='<div class="box"><div style="display:flex;justify-content:space-between;gap:8px"><h3>난방수 색 확인</h3><span class="tag">난방 시작 전</span></div><p>보일러 분배기의 에어체크 밸브로 난방수 색을 봐요. 녹이나 찌꺼기가 많으면 난방이 약해지고 기름도 더 들어요.</p><button type="button" class="btn" data-go="heatchk" data-h="'+esc(H.id)+'">확인하기</button></div>';
   else if(!H.heat)h+='<p class="sub">집 정보에 난방 종류를 넣으시면 기름·화목 보일러 집에 맞는 점검도 나와요.</p>';
   var L=S.checks.filter(function(c){return c.houseId===H.id;}).sort(function(a,b){return b.ts-a.ts;});
   if(L.length)h+='<h3 style="margin-top:4px">점검 기록</h3><div class="list">'+L.map(function(c){return '<div class="item '+(c.ok?"ok":"hot")+'"><span class="m"><span class="t">'+esc(c.kind)+' · '+esc(c.result)+'</span><span class="s" style="display:block">'+esc(c.date)+'</span></span><button type="button" class="btn sm ghost" data-go="cdel" data-id="'+esc(c.id)+'" aria-label="기록 지우기">지우기</button></div>';}).join("")+'</div>';
@@ -657,7 +660,7 @@ function addCheck(H,kind,ok,result,extra){var c={id:uid(),ts:Date.now(),date:tod
   var keep=S.checks.filter(function(x){return x.photos;}).sort(function(a,b){return b.ts-a.ts;}).slice(6).forEach(function(x){delete x.photos;});save();}
 function delCheck(id){var b=document.querySelector('[data-go="cdel"][data-id="'+id+'"]');if(b&&!b.dataset.arm){b.dataset.arm="1";b.textContent="한 번 더";return;}S.checks=S.checks.filter(function(c){return c.id!==id;});save();render();}
 function leakSheet(hid){var H=house(hid);if(!H)return;
-  if(H.water==="지하수"){
+  if(has(H.water,"지하수")){
     sheet("누수 자가체크 · 지하수",'<ol class="how"><li>집 안 수도꼭지와 물 쓰는 기계(세탁기, 보일러 보충수 등)를 모두 잠급니다</li><li>10분쯤 기다리며 펌프 소리를 들어 봅니다</li><li>아무도 물을 안 쓰는데 <b>펌프가 혼자 켜졌다 꺼지면</b> 어딘가 새고 있을 수 있어요</li></ol><div class="big2"><button type="button" class="btn" id="lkOk">안 켜져요</button><button type="button" class="btn hot" id="lkBad">혼자 켜져요</button></div><button type="button" class="btn ghost" data-go="ask" data-n="펌프 위치를 잘 모르겠어요">펌프를 못 찾겠어요</button>');
     $("#lkOk").onclick=function(){addCheck(H,"누수",true,"이상 없음 (펌프)");closeSheet();render();toast("이번 달 점검을 기록했어요");};
     $("#lkBad").onclick=function(){addCheck(H,"누수",false,"누수 의심 (펌프가 혼자 켜짐)");closeSheet();render();bookSheet("누수",H.id,"누수 자가체크: 아무도 물을 안 쓰는데 지하수 펌프가 혼자 켜집니다.");};return;}
@@ -691,7 +694,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261102a</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261102c</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>접수할 때는 고른 집뿐 아니라 등록한 집 목록(이름·주소·연락받을 번호·주택 종류 등)이 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>보낸 정보를 지우고 싶으시면 더보기 → 개인정보 수정 → "내 정보 지우기"에서 삭제 요청을 보내 주세요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
