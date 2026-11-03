@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261102c">
+<meta name="page-ver" content="20261103a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -156,6 +156,14 @@ ol.how li::marker{font-weight:800;color:var(--ochre-deep)}
 .tiles .tile .tn{line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .tiles .tile small{font-size:11.5px;font-weight:600;color:var(--ink2)}
 .tiles .tile.tel{background:var(--ok-soft)}
+.bigboard{margin:12px 16px 4px;display:flex;flex-direction:column;gap:10px}
+.bb-main{display:flex;align-items:center;justify-content:center;gap:14px;padding:22px 12px;border-radius:16px;background:var(--ink);color:var(--paper);text-decoration:none;font-size:30px;font-weight:900;line-height:1.1}
+.bb-main svg{width:38px;height:38px;stroke:currentColor;fill:none;stroke-width:2;stroke-linejoin:round}.bb-main span{display:flex;flex-direction:column}.bb-main small{font-size:17px;font-weight:700;opacity:.8}
+.bb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bb-t{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:96px;padding:12px 6px;border-radius:14px;background:var(--ok-soft);color:var(--ink);text-decoration:none;text-align:center;word-break:keep-all}
+.bb-t b{font-size:24px;line-height:1.15}.bb-t small{font-size:14px;font-weight:700;color:var(--ink2)}
+.pcode{font-size:44px;font-weight:900;letter-spacing:6px;text-align:center;margin:10px 0}
+.bb-ed{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}.bb-ed .lrow.fixed{background:var(--mist)}
 .verbar{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;font:inherit;font-weight:800;font-size:14.5px;padding:14px;border:0;border-radius:12px;background:var(--ink);color:var(--paper);box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .tiles .tile.new{outline:3px solid var(--ochre);outline-offset:2px;transition:outline-color .4s}
 .tiles .tadd{background:none;border:2px dashed var(--line);color:var(--ink2)}
@@ -407,7 +415,7 @@ function finishJoin(){S.me=joinMe;S.consent=true;S.joinedAt=Date.now();S.houses=
 function winterOn(){var d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m===11&&dd>=20)||m===12||m===1||m===2;}
 function leakDue(){var ym=today().slice(0,7);return S.houses.filter(function(h){return !S.checks.some(function(c){return c.kind==="누수"&&c.houseId===h.id&&String(c.date).slice(0,7)===ym;});});}
 var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 고객 관리(등록한 이름·전화번호), 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
-function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+HERO_DECO+'</div>';
+function vHome(){var h=(S.pm&&S.pm.on?boardHtml():'')+'<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+HERO_DECO+'</div>';
   var al='';
   if(winterOn())al+='<div class="box warn"><h3>겨울철 동파 대비</h3><p>열선이 설치된 곳은 전원이 연결되어 있는지, 정상적으로 작동하는지 확인해 주세요. 기온이 크게 떨어지는 날에는 수도꼭지를 조금 틀어 두면 동파를 막을 수 있어요.</p></div>';
   var due=leakDue();if(due.length)al+='<button type="button" class="item hot" data-go="leak" data-h="'+esc(due[0].id)+'"><span class="m"><span class="t">이번 달 누수 점검이 남아 있어요</span><span class="s" style="display:block">'+esc(due.map(function(x){return x.name;}).join(", "))+' · 계량기 사진 두 장이면 끝나요</span></span><span class="tag">점검하기</span></button>';
@@ -505,6 +513,70 @@ document.addEventListener("click",function(e){var d=e.target.closest("[data-ldel
     var L=locList(),ord=[].map.call($("#tiles").querySelectorAll(".tile"),function(z){return +z.dataset.li;});locSet(ord.map(function(k){return L[k];}));render();}
   document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);
   document.addEventListener("click",function(e){if(fired&&Date.now()-fired<1500&&e.target.closest&&e.target.closest("#tiles")){e.preventDefault();e.stopPropagation();}fired=0;},true);})();
+/* ================= 부모님 폰 전화판 =================
+   부모님 폰: 홈 맨 위에 큰 전화판(대원설비 고정 + 최대 10명). 부모님도 고칠 수 있음.
+   자녀 폰: 더보기 → 부모님 폰 전화판 → 집(어머니 댁 등)마다 부모님 폰 하나 연결·관리.
+   서버: /boards/{긴 비밀 번호} {items,updatedAt,lastUse,ck,cname}, /pair/{6자리} {bid,exp} (10분)
+   누구에게 전화했는지는 기록하지 않음. 마지막으로 연 시각만 남김. */
+var BOARD_MAX=10;
+function bdUrl(bid,sub){return DB_URL+"/boards/"+bid+(sub?"/"+sub:"")+".json";}
+function bdGet(bid){return fetch(bdUrl(bid)).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});}
+function bdPut(bid,sub,v,method){return fetch(bdUrl(bid,sub),{method:method||"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});}
+function bdItems(b){return ((b&&Array.isArray(b.items))?b.items:Object.values((b&&b.items)||{})).filter(function(x){return x&&x.tel;}).slice(0,BOARD_MAX).map(function(x){return {n:String(x.n||"").slice(0,12),tel:fmtTel(x.tel)};});}
+function boardHtml(){var L=(S.pm&&S.pm.items)||[];
+  return '<div class="bigboard"><a class="bb-main" href="tel:'+dg(CALL_NO)+'" id="bbMain"><svg viewBox="0 0 24 24" aria-hidden="true">'+LOC_TEL+'</svg><span>대원설비<small>고장·수리</small></span></a>'
+   +(L.length?'<div class="bb-grid">'+L.map(function(x){return '<a class="bb-t" href="tel:'+esc(dg(x.tel))+'"><b>'+esc(x.n||x.tel)+'</b><small>'+esc(x.tel)+'</small></a>';}).join("")+'</div>':'<p class="sub" style="text-align:center">아래 "고치기"로 자주 거는 번호를 넣어 두세요.</p>')
+   +'<button type="button" class="lnk" data-go="boardedit" style="display:block;margin:6px auto 0">전화판 고치기</button></div>';}
+/* 부모님 폰: 열 때마다 최신 전화판 받아 오고, 마지막 사용 시각 남기기 */
+function pmSync(){if(!(S.pm&&S.pm.on&&S.pm.bid))return;
+  bdGet(S.pm.bid).then(function(b){if(!b){return;}var it=bdItems(b);var ch=JSON.stringify(it)!==JSON.stringify(S.pm.items||[]);S.pm.items=it;S.pm.at=b.updatedAt||0;S.pm.cname=b.cname||"";if(ch){save();if(S.tab==="home"&&!document.getElementById("sh"))render();}}).catch(function(){});
+  if(Date.now()-(S.pm.useAt||0)>10*60000){S.pm.useAt=Date.now();save();bdPut(S.pm.bid,"lastUse",Date.now()).catch(function(){});}}
+document.addEventListener("visibilitychange",function(){if(!document.hidden)pmSync();});
+setInterval(function(){if(!document.hidden)pmSync();},60000);
+function boardMenu(){var linked=S.houses.filter(function(h){return h.bid;});
+  if(S.pm&&S.pm.on){sheet("부모님 폰 전화판",'<p>이 폰은 <b>큰 전화판</b>으로 쓰이고 있어요. 홈 맨 위에 대원설비와 자주 거는 번호가 크게 나와요.</p>'+(S.pm.cname?'<p class="sub">'+esc(S.pm.cname)+'님이 함께 챙기고 있어요.</p>':'<p class="sub">아직 자녀 폰과 연결되지 않았어요.</p>')
+    +'<button type="button" class="btn" data-go="boardedit">전화판 고치기</button><button type="button" class="btn ghost" id="pmCode">자녀 폰 연결 번호 보기</button><button type="button" class="btn ghost" id="pmOff">큰 전화판 끄기</button>');
+    $("#pmCode").onclick=pmPair;$("#pmOff").onclick=function(){var b=$("#pmOff");if(!b.dataset.arm){b.dataset.arm="1";b.textContent="한 번 더 누르면 꺼져요";return;}S.pm.on=false;save();closeSheet();render();toast("큰 전화판을 껐어요");};return;}
+  sheet("부모님 폰 전화판",'<p class="sub">부모님 폰 홈 화면에 <b>대원설비와 자주 거는 번호를 큰 글씨로</b> 띄워 드려요. 누르면 바로 전화가 걸려요. 자녀 폰에서 번호를 챙겨 드릴 수 있어요. 누구에게 전화했는지는 남기지 않아요.</p>'
+   +'<div class="sec" style="padding:8px 0 0"><h2>부모님 폰 관리하기</h2></div>'
+   +'<div class="list" style="margin:0 -18px">'+S.houses.map(function(h){return '<div class="item"><span class="m"><span class="t">'+esc(h.name)+'</span><span class="s" style="display:block" id="bdSt_'+esc(h.id)+'">'+(h.bid?"연결됨 · 불러오는 중…":"연결된 부모님 폰 없음")+'</span></span>'+(h.bid?'<button type="button" class="btn sm" data-bd="'+esc(h.id)+'">전화판 고치기</button>':'<button type="button" class="btn sm ghost" data-bdlink="'+esc(h.id)+'">연결하기</button>')+'</div>';}).join("")+'</div>'
+   +'<p class="sub">부모님 집이 없으면 "우리 집"에서 집을 먼저 추가해 주세요.</p>'
+   +'<div class="sec" style="padding:14px 0 0"><h2>이 폰이 부모님 폰이라면</h2></div><button type="button" class="btn ghost" id="pmOn">이 폰을 큰 전화판으로 쓰기</button>');
+  $("#pmOn").onclick=pmStart;
+  [].forEach.call(document.querySelectorAll("[data-bd]"),function(b){b.onclick=function(){kidEdit(b.dataset.bd);};});
+  [].forEach.call(document.querySelectorAll("[data-bdlink]"),function(b){b.onclick=function(){kidLink(b.dataset.bdlink);};});
+  linked.forEach(function(h){bdGet(h.bid).then(function(b){var e=document.getElementById("bdSt_"+h.id);if(!e)return;if(!b){e.textContent="연결이 끊겼어요";return;}e.textContent="연결됨 · "+(b.lastUse?"마지막 사용 "+agoTxt(b.lastUse):"아직 열어 보지 않았어요")+" · 번호 "+bdItems(b).length+"개";}).catch(function(){var e=document.getElementById("bdSt_"+h.id);if(e)e.textContent="연결됨 · 지금은 불러오지 못했어요";});});}
+function agoTxt(t){var m=Math.round((Date.now()-t)/60000);if(m<2)return "방금";if(m<60)return m+"분 전";var d=new Date(t),td=new Date();var hm=(d.getHours()<12?"오전 ":"오후 ")+((d.getHours()%12)||12)+":"+String(d.getMinutes()).padStart(2,"0");if(d.toDateString()===td.toDateString())return "오늘 "+hm;var y=new Date(Date.now()-864e5);if(d.toDateString()===y.toDateString())return "어제 "+hm;return (d.getMonth()+1)+"/"+d.getDate()+" "+hm;}
+/* 부모님 폰: 시작 + 연결 번호 */
+function pmStart(){S.pm=S.pm||{};if(!S.pm.bid)S.pm.bid=reqKey()+reqKey().slice(-8);S.pm.on=true;S.pm.items=S.pm.items||[];save();
+  bdPut(S.pm.bid,"",{items:S.pm.items,updatedAt:Date.now(),lastUse:Date.now(),app:2},"PATCH").then(function(){pmPair();}).catch(function(){closeSheet();render();toast("큰 전화판을 켰어요. 인터넷이 되면 자녀 폰과 연결할 수 있어요");});}
+function pmPair(){var code=String(Math.floor(100000+Math.random()*900000));
+  fetch(DB_URL+"/pair/"+code+".json",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({bid:S.pm.bid,exp:Date.now()+10*60000})}).then(function(r){if(!r.ok)throw 0;
+    sheet("자녀 폰 연결",'<p>자녀 폰에서 <b>더보기 → 부모님 폰 전화판 → 연결하기</b>를 누르고 이 번호를 넣어 주세요.</p><p class="pcode">'+code.slice(0,3)+' '+code.slice(3)+'</p><p class="sub">10분 동안 쓸 수 있어요.</p><p class="sub" id="pmWait">연결을 기다리는 중…</p><button type="button" class="btn" data-x="1">닫기</button>');
+    closeSheet0=null;var n=0,tm=setInterval(function(){if(!document.getElementById("pmWait")||++n>120){clearInterval(tm);return;}bdGet(S.pm.bid).then(function(b){if(b&&b.ck){clearInterval(tm);S.pm.cname=b.cname||"";save();var w=document.getElementById("pmWait");if(w)w.textContent="✔ "+(b.cname||"자녀")+"님 폰과 연결됐어요";render();}}).catch(function(){});},5000);})
+  .catch(function(){toast("연결 번호를 만들지 못했어요. 인터넷을 확인해 주세요");});}
+var closeSheet0=null;
+/* 자녀 폰: 연결 */
+function kidLink(hid){var H=house(hid);if(!H)return;
+  sheet(H.name+" · 부모님 폰 연결",'<p class="sub">부모님 폰에서 <b>더보기 → 부모님 폰 전화판 → 이 폰을 큰 전화판으로 쓰기</b>를 누르면 6자리 번호가 나와요.</p><div class="field"><label for="kcode">연결 번호 6자리</label><input id="kcode" inputmode="numeric" maxlength="7" placeholder="123 456"></div><p class="err" id="kErr" hidden></p><button type="button" class="btn hot" id="kOk">연결하기</button>');
+  $("#kOk").onclick=function(){var c=dg($("#kcode").value);if(c.length!==6){ferr("kErr","6자리 번호를 넣어 주세요.");return;}var b=$("#kOk");b.disabled=true;
+    fetch(DB_URL+"/pair/"+c+".json").then(function(r){return r.ok?r.json():null;}).then(function(p){if(!p||!p.bid||p.exp<Date.now())throw "code";
+      return bdGet(p.bid).then(function(bd){if(bd&&bd.ck&&bd.ck!==myCk())throw "taken";return bdPut(p.bid,"",{ck:myCk(),cname:S.me?S.me.name:"",cphone:S.me?S.me.phone:""},"PATCH").then(function(){H.bid=p.bid;save();fetch(DB_URL+"/pair/"+c+".json",{method:"PUT",headers:{"Content-Type":"application/json"},body:"null"}).catch(function(){});toast("부모님 폰과 연결했어요");kidEdit(hid);});});})
+    .catch(function(e){b.disabled=false;ferr("kErr",e==="taken"?"이 부모님 폰은 이미 다른 분이 관리하고 있어요.":e==="code"?"번호가 맞지 않거나 시간이 지났어요. 부모님 폰에서 번호를 다시 받아 주세요.":"연결하지 못했어요. 인터넷을 확인해 주세요.");});};}
+function myCk(){if(!S.dk){S.dk=reqKey().slice(-12);save();}return S.dk;}
+/* 전화판 고치기: 자녀(hid) 또는 부모님 본인(hid 없음) */
+function kidEdit(hid){var H=hid?house(hid):null,bid=H?H.bid:(S.pm&&S.pm.bid);if(!bid)return;
+  var draw=function(L,msg){sheet((H?H.name+" · ":"")+"전화판 고치기",'<div class="bb-ed"><div class="lrow fixed"><span class="m"><b>대원설비</b><span class="sub">고장·수리 · 맨 위 고정</span></span></div>'
+     +L.map(function(x,i){return '<div class="lrow"><span class="m"><b>'+esc(x.n||x.tel)+'</b><span class="sub">'+esc(x.tel)+'</span></span><button type="button" data-be="up" data-i="'+i+'"'+(i?"":" disabled")+' aria-label="위로">▲</button><button type="button" data-be="dn" data-i="'+i+'"'+(i<L.length-1?"":" disabled")+' aria-label="아래로">▼</button><button type="button" data-be="del" data-i="'+i+'" aria-label="빼기">✕</button></div>';}).join("")+'</div>'
+     +(L.length<BOARD_MAX?'<div class="box" style="gap:8px;margin-top:10px"><input id="beN" maxlength="12" placeholder="이름 (예: 큰아들, 보건소)"><input id="beT" type="tel" inputmode="tel" maxlength="20" placeholder="전화번호">'+(navigator.clipboard&&navigator.clipboard.readText?'<button type="button" class="btn ghost" id="bePaste">복사한 번호 붙여넣기</button>':'')+'<p class="err" id="beErr"'+(msg?"":" hidden")+'>'+esc(msg||"")+'</p><button type="button" class="btn" id="beAdd">넣기</button></div>':'<p class="sub">'+BOARD_MAX+'개까지 넣을 수 있어요.</p>')
+     +(H?'<button type="button" class="btn ghost" id="beUnlink" style="margin-top:10px">부모님 폰 연결 끊기</button>':''));
+    var put=function(M){var at=Date.now();bdPut(bid,"",{items:M,updatedAt:at},"PATCH").then(function(){if(!H&&S.pm){S.pm.items=M;S.pm.at=at;save();render();}draw(M);toast("저장했어요");}).catch(function(){toast("저장하지 못했어요. 인터넷을 확인해 주세요");});};
+    [].forEach.call(document.querySelectorAll("[data-be]"),function(b){b.onclick=function(){var M=L.slice(),i=+b.dataset.i,a=b.dataset.be;if(a==="del")M.splice(i,1);else{var j=a==="up"?i-1:i+1;if(j<0||j>=M.length)return;var t=M[i];M[i]=M[j];M[j]=t;}put(M);};});
+    var ad=$("#beAdd");if(ad)ad.onclick=function(){var n=$("#beN").value.trim(),t=$("#beT").value.trim();if(dg(t).length<8){$("#beErr").textContent="전화번호를 확인해 주세요.";$("#beErr").hidden=false;return;}put(L.concat([{n:(n||fmtTel(t)).slice(0,12),tel:fmtTel(t)}]));};
+    var ps=$("#bePaste");if(ps)ps.onclick=function(){navigator.clipboard.readText().then(function(t){t=String(t||"");var m=t.match(/(?:\+?82[\s-]?)?0?1[016789][\s-]?\d{3,4}[\s-]?\d{4}|0\d{1,2}[\s-]?\d{3,4}[\s-]?\d{4}/);if(!m){toast("복사한 글에 전화번호가 없어요");return;}$("#beT").value=fmtTel(m[0]);var nm=t.replace(m[0],"").replace(/[\r\n,:]+/g," ").replace(/전화|휴대폰|핸드폰|번호|연락처/g,"").trim().slice(0,12);if(nm&&!$("#beN").value.trim())$("#beN").value=nm;}).catch(function(){toast("붙여넣기를 허용해 주세요");});};
+    var ul=$("#beUnlink");if(ul)ul.onclick=function(){if(!ul.dataset.arm){ul.dataset.arm="1";ul.textContent="한 번 더 누르면 연결을 끊어요";return;}bdPut(bid,"",{ck:null,cname:null,cphone:null},"PATCH").catch(function(){});delete H.bid;save();closeSheet();toast("연결을 끊었어요");};};
+  sheet("전화판 불러오는 중",'<p class="sub">잠시만요…</p>');
+  bdGet(bid).then(function(b){draw(bdItems(b));}).catch(function(){draw(H?[]:((S.pm&&S.pm.items)||[]),"지금은 불러오지 못했어요. 인터넷이 되면 다시 열어 주세요.");});}
 function locSearch(q){q=String(q||"").trim();if(!q)return;var u="https://m.map.naver.com/search2/search.naver?query="+encodeURIComponent((scopeQuery(locH())+" "+q).trim());var w=null;try{w=window.open(u,"_blank");}catch(e){}if(!w)location.href=u;}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-loc]");if(b){locSearch(b.dataset.loc);return;}var c=e.target.closest("[data-loch]");if(c){S.locH=c.dataset.loch;save();render();}});
 
@@ -517,7 +589,7 @@ document.addEventListener("click",function(e){var b=e.target.closest("[data-go]"
   else if(g==="heatchk"){heatSheet(b.dataset.h);}
   else if(g==="hadd")houseSheet(null,function(h){S.chkH=h.id;render();});else if(g==="hedit")houseSheet(b.dataset.h);else if(g==="hinfo")infoSheet(b.dataset.h);
   else if(g==="chkh"){S.chkH=b.dataset.h;render();}else if(g==="tab"){goTab(b.dataset.t);}
-  else if(g==="me")meSheet();else if(g==="locedit"){S.locEdit=!S.locEdit;render();}else if(g==="locadd"){locAddSheet();}else if(g==="backupm")backupSheet();else if(g==="sharem")shareSheet();else if(g==="privacy")privacySheet();else if(g==="backup")backup();else if(g==="restore")pickRestore();else if(g==="cdel")delCheck(b.dataset.id);else if(g==="hdel")delHouse(b.dataset.h);});
+  else if(g==="me")meSheet();else if(g==="boardm")boardMenu();else if(g==="boardedit"){kidEdit(null);}else if(g==="locedit"){S.locEdit=!S.locEdit;render();}else if(g==="locadd"){locAddSheet();}else if(g==="backupm")backupSheet();else if(g==="sharem")shareSheet();else if(g==="privacy")privacySheet();else if(g==="backup")backup();else if(g==="restore")pickRestore();else if(g==="cdel")delCheck(b.dataset.id);else if(g==="hdel")delHouse(b.dataset.h);});
 
 /* ---------- 접수 ---------- */
 function hopts(b){b=b||{};return '<option value="시간 협의">시간 협의</option>'+HRS.map(function(x){return '<option value="'+x+':00">'+x+':00'+(b[x]?' (다른 일정 있음)':'')+'</option>';}).join("");}
@@ -687,14 +759,15 @@ function heatSheet(hid){var H=house(hid);if(!H)return;
     sheet("난방수 확인 결과",'<div class="box warn"><b>'+esc(v)+'</b><p>'+esc(msg)+'</p></div><button type="button" class="btn hot" data-go="book" data-w="보일러" data-h="'+esc(H.id)+'" data-n="난방수 색 확인: '+esc(v)+'. 난방 배관 점검·청소 원합니다.">점검·청소 예약하기</button>');};});}
 
 /* ---------- 더보기 ---------- */
-var MI={me:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>',backup:'<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',install:'<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>',privacy:'<path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z"/>'};
+var MI={me:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>',backup:'<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',install:'<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/>',share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/>',privacy:'<path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z"/>',board:'<rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/>'};
 function mrow(go,ic,t,s){return '<button type="button" class="mrow" data-go="'+go+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+MI[ic]+'</svg><span class="m"><span class="t">'+t+'</span>'+(s?'<span class="s">'+s+'</span>':'')+'</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>';}
 function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
   h+='<div class="menu">'+(S.me?mrow("me","me","개인정보 수정",esc(S.me.name)+" · "+esc(S.me.phone)+" · 집 "+S.houses.length+"곳"):'')
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
+   +mrow("boardm","board","부모님 폰 전화판",S.pm&&S.pm.on?"이 폰이 큰 전화판으로 쓰이고 있어요":S.houses.some(function(h){return h.bid;})?"연결된 부모님 폰 "+S.houses.filter(function(h){return h.bid;}).length+"대":"자녀가 부모님 폰의 큰 전화판을 챙겨 드려요")
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261102c</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261103a</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>접수할 때는 고른 집뿐 아니라 등록한 집 목록(이름·주소·연락받을 번호·주택 종류 등)이 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>보낸 정보를 지우고 싶으시면 더보기 → 개인정보 수정 → "내 정보 지우기"에서 삭제 요청을 보내 주세요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
@@ -791,7 +864,7 @@ function statusSync(){var L=S.reqs.filter(function(r){return (r.kind==="예약"|
   Promise.all(L.map(function(r){return fetch(DB_URL+"/reqstatus/"+encodeURIComponent(r.id)+".json").then(function(x){return x.ok?x.json():null;}).then(function(j){if(!j||!j.st)return false;
     var ch=r.st!==j.st||r.vdate!==(j.date||"")||r.vtime!==(j.time||"")||r.pname!==(j.pname||"");if(ch){r.st=j.st;r.vdate=j.date||"";r.vtime=j.time||"";r.pname=j.pname||"";r.pphone=j.pphone||"";r.stAt=Date.now();}return ch;}).catch(function(){return false;});}))
   .then(function(a){if(a.some(Boolean)){save();if(S.tab==="home"&&!document.getElementById("sh"))render();}});}
-statusSync();
+statusSync();pmSync();
 if(picking()&&S.me){try{sessionStorage.removeItem("jr_pick");}catch(e){}S.tab="home";render();tileSheet(-1,{n:"",tel:""},"연락처를 고르는 동안 휴대폰이 앱을 새로 열어서, 고른 분을 받아 오지 못했어요. 다시 \"연락처에서 고르기\"를 누르시거나, 이름과 번호를 여기에 적어 주세요.");}
 document.addEventListener("visibilitychange",function(){if(!document.hidden)statusSync();});
 })();
