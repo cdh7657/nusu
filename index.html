@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261103c">
+<meta name="page-ver" content="20261103d">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -540,7 +540,7 @@ function vCalls(){var L=callList(),big=S.pm&&S.pm.on;
   return '<div class="sec sechd"><h2>전화 연결</h2>'+(L.length?'<button type="button" class="lnk" data-go="boardedit">편집</button>':'')+'</div><div class="calls'+(big?" big":"")+'">'
    +'<a class="crow main" href="tel:'+dg(CALL_NO)+'" id="bbMain"><span class="m"><b>대원설비</b><small>고장·수리 · '+esc(CALL_NO)+'</small></span><svg viewBox="0 0 24 24" aria-hidden="true">'+LOC_TEL+'</svg></a>'
    +L.map(function(x){return '<a class="crow" href="tel:'+esc(dg(x.tel))+'"><span class="m"><b>'+esc(x.n||x.tel)+'</b><small>'+esc(x.tel)+'</small></span><svg viewBox="0 0 24 24" aria-hidden="true">'+LOC_TEL+'</svg></a>';}).join("")
-   +(L.length<BOARD_MAX?'<button type="button" class="crow add" data-go="calladd"><span class="m"><b>+ 추가하기</b><small>이름과 전화번호 넣기</small></span></button>':'')+'</div>';}
+   +'</div>';}
 function callAddSheet(){sheet("전화 연결 추가",'<div style="display:flex;flex-direction:column;gap:12px"><p class="sub">연락처 앱에서 번호를 길게 눌러 복사한 뒤 "복사한 번호 붙여넣기"를 누르면 번호가 채워져요.</p><div class="field"><label for="caN">이름</label><input id="caN" maxlength="12" placeholder="예) 큰아들, 이장님, 기름집"></div><div class="field"><label for="caT">전화번호</label><input id="caT" type="tel" inputmode="tel" maxlength="20"></div>'
    +(navigator.clipboard&&navigator.clipboard.readText?'<button type="button" class="btn ghost" id="caPaste">복사한 번호 붙여넣기</button>':'')+'<p class="err" id="caErr" hidden></p><button type="button" class="btn hot" id="caOk">넣기</button></div>');
   var ps=$("#caPaste");if(ps)ps.onclick=function(){navigator.clipboard.readText().then(function(t){t=String(t||"");var m=t.match(/(?:\+?82[\s-]?)?0?1[016789][\s-]?\d{3,4}[\s-]?\d{4}|0\d{1,2}[\s-]?\d{3,4}[\s-]?\d{4}/);if(!m){toast("복사한 글에 전화번호가 없어요");return;}$("#caT").value=fmtTel(m[0]);var nm=t.replace(m[0],"").replace(/[\r\n,:]+/g," ").replace(/전화|휴대폰|핸드폰|번호|연락처/g,"").trim().slice(0,12);if(nm&&!$("#caN").value.trim())$("#caN").value=nm;}).catch(function(){toast("붙여넣기를 허용해 주세요");});};
@@ -790,7 +790,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("boardm","board","부모님 폰 전화판",S.pm&&S.pm.on?"이 폰이 큰 전화판으로 쓰이고 있어요":S.houses.some(function(h){return h.bid;})?"연결된 부모님 폰 "+S.houses.filter(function(h){return h.bid;}).length+"대":"자녀가 부모님 폰의 큰 전화판을 챙겨 드려요")
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261103c</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261103d</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>접수할 때는 고른 집뿐 아니라 등록한 집 목록(이름·주소·연락받을 번호·주택 종류 등)이 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>보낸 정보를 지우고 싶으시면 더보기 → 개인정보 수정 → "내 정보 지우기"에서 삭제 요청을 보내 주세요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
