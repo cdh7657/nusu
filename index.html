@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261120h">
+<meta name="page-ver" content="20261120k">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -437,8 +437,8 @@ function finishJoin(){S.me=joinMe;S.consent=true;S.joinedAt=Date.now();S.houses=
 /* ---------- 홈 (정보창) ---------- */
 function winterOn(){var d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m===11&&dd>=20)||m===12||m===1||m===2;}
 function leakDue(){var ym=today().slice(0,7);return S.houses.filter(function(h){return !S.checks.some(function(c){return c.kind==="누수"&&c.houseId===h.id&&String(c.date).slice(0,7)===ym;});});}
-var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 고객 관리(등록한 이름·전화번호), 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. 집 도우미에 적은 글과 사진은 답을 만들기 위해 Google(Gemini)로 보내지며, 대원설비건축은 저장하지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
-function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+(aiOn()?'<button type="button" class="btn" data-go="ai" style="margin-top:8px">💬 무엇이든 물어보세요</button>':'')+HERO_DECO+'</div>'+vCalls();
+var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 고객 관리(등록한 이름·전화번호), 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. AI에게 물어보기에 적은 글과 사진은 답을 만들기 위해 Google(Gemini)로 보내지며, 대원설비건축은 저장하지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
+function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+(aiOn()?'<button type="button" class="btn" data-go="ai" style="margin-top:8px">💬 AI에게 물어보기</button>':'')+HERO_DECO+'</div>'+vCalls();
   var al='';
   if(winterOn())al+='<div class="box warn"><h3>겨울철 동파 대비</h3><p>열선이 설치된 곳은 전원이 연결되어 있는지, 정상적으로 작동하는지 확인해 주세요. 기온이 크게 떨어지는 날에는 수도꼭지를 조금 틀어 두면 동파를 막을 수 있어요.</p></div>';
   var due=leakDue();if(due.length)al+='<button type="button" class="item hot" data-go="leak" data-h="'+esc(due[0].id)+'"><span class="m"><span class="t">이번 달 누수 점검이 남아 있어요</span><span class="s" style="display:block">'+esc(due.map(function(x){return x.name;}).join(", "))+' · 계량기 사진 두 장이면 끝나요</span></span><span class="tag">점검하기</span></button>';
@@ -838,7 +838,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("boardm","board","부모님 전화화면설정",S.pm&&S.pm.on?"이 폰이 큰 전화화면으로 쓰이고 있어요":S.houses.some(function(h){return h.bid;})?"연결된 부모님 폰 "+S.houses.filter(function(h){return h.bid;}).length+"대":"자녀가 부모님 폰의 큰 전화화면을 챙겨 드려요")
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261120h</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261120k</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>접수할 때는 고른 집뿐 아니라 등록한 집 목록(이름·주소·연락받을 번호·주택 종류 등)이 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>보낸 정보를 지우고 싶으시면 더보기 → 개인정보 수정 → "내 정보 지우기"에서 삭제 요청을 보내 주세요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
@@ -874,8 +874,10 @@ function qrShow(){var x=shMsg(),c=qrCanvas(x.u,800,"대원설비건축 · 집수
 var AI_CFG={web:{apiKey:"AIzaSyB8NWjchZimJNbX1Nn_bNcIW234afMWDeE",authDomain:"daewon-booking.firebaseapp.com",projectId:"daewon-booking",storageBucket:"daewon-booking.firebasestorage.app",messagingSenderId:"295193453425",appId:"1:295193453425:web:86f0e1a695af830ab14cd0"},rc:"6LetdyguAAAAABWx3dabGbrGEOQv8D61EF3aa70X",model:"gemini-3.6-flash",ver:"13.2.0",daily:20};
 window.__ai=AI_CFG;
 var AIC={msgs:[],busy:false,ph:null};
+var AI_EX=["예: 겨울에 수도가 얼지 않게 하려면 어떻게 해요?","예: 싱크대 물이 잘 안 내려가요","예: 귀뚜라미 기름보일러에 02가 깜박여요","예: 화장실 실리콘에 곰팡이가 생겼어요","예: 수도를 다 잠갔는데 계량기가 돌아요"];
 var AI_MODELS=["gemini-3.6-flash","gemini-3.5-flash","gemini-3.5-flash-lite","gemini-3-flash","gemini-2.5-flash","gemini-2.5-flash-lite"],AI_OK=0;
-function aiOn(){var c=S.cfgAI||{};return !!(AI_CFG.web&&AI_CFG.rc)&&c.on!==false;}
+var AI_READY=false; /* Google 무료 한도(429)로 막혀 있어 꺼 둠. 요금제 정하면 true */
+function aiOn(){var c=S.cfgAI||{};return AI_READY&&!!(AI_CFG.web&&AI_CFG.rc)&&c.on!==false;}
 function aiDaily(){var c=S.cfgAI||{};return +c.daily||AI_CFG.daily;}
 function aiLeft(){var d=plus(0),u=S.aiDay&&S.aiDay.d===d?S.aiDay.n:0;return Math.max(0,aiDaily()-u);}
 function aiSys(){var H=mainHouse(),info=H?infoLine(H):[];
@@ -907,21 +909,21 @@ function aiMsgHtml(m){if(m.r==="u")return '<div class="aim u">'+(m.ph?'<img src=
   return '<div class="aim a'+(m.err?' err':'')+'"><div>'+aiFmt(m.t)+'</div>'+(m.why?'<div class="aisrc">(오류: '+esc(m.why)+')</div>':'')
    +(m.src&&m.src.length?'<div class="aisrc">출처: '+m.src.map(function(s){return '<a href="'+esc(s.uri)+'" target="_blank" rel="noopener">'+esc(s.title||"링크")+'</a>';}).join(" · ")+'</div>':'')
    +(m.sug?'<iframe class="aisug" sandbox="allow-popups allow-popups-to-escape-sandbox" title="Google 검색 제안" srcdoc="'+esc(m.sug)+'"></iframe>':'')+'</div>';}
-function aiLogHtml(){if(!AIC.msgs.length)return '<div class="aim a"><div>안녕하세요. 집에 관해 궁금한 것을 물어보세요.<br>보일러는 <b>회사 이름</b>(경동·귀뚜라미·린나이 등)과 <b>화면에 뜬 숫자</b>를 같이 적어 주세요. 회사마다 숫자 뜻이 달라요.<br>보일러 앞면이나 고장 난 곳을 찍어 보내시면 더 정확해요.</div></div>';return AIC.msgs.map(aiMsgHtml).join("");}
+function aiLogHtml(){if(!AIC.msgs.length)return '<div class="aim a"><div>안녕하세요. <b>집을 관리하면서 궁금한 것</b>을 물어보세요.<br>수도·보일러·하수구·전기·동파 준비·집 손질 무엇이든 좋아요.<br>보일러 같은 기계는 <b>회사 이름</b>과 <b>화면에 뜬 숫자</b>를 같이 적어 주시고, 고장 난 곳은 사진을 찍어 보내시면 더 정확해요.</div></div>';return AIC.msgs.map(aiMsgHtml).join("");}
 function aiSheet(){if(!aiOn())return;
-  sheet("집 도우미",'<div class="ailog" id="aiLog" aria-live="polite">'+aiLogHtml()+(AIC.busy?'<div class="aim a" id="aiWait"><div>생각하는 중…</div></div>':'')+'</div>'
+  sheet("AI에게 물어보기 (제미나이)",'<div class="ailog" id="aiLog" aria-live="polite">'+aiLogHtml()+(AIC.busy?'<div class="aim a" id="aiWait"><div>생각하는 중…</div></div>':'')+'</div>'
    +'<div id="aiPh">'+(AIC.ph?'<div class="aiphv"><img src="'+AIC.ph+'" alt="보낼 사진"><button type="button" class="btn ghost sm" id="aiPhX">사진 빼기</button></div>':'')+'</div>'
-   +'<div class="field"><label class="lbl" for="aiQ">궁금한 것</label><textarea id="aiQ" rows="2" maxlength="500" placeholder="예: 귀뚜라미 기름보일러에 02가 깜박여요"></textarea></div>'
+   +'<div class="field"><label class="lbl" for="aiQ">궁금한 것</label><textarea id="aiQ" rows="2" maxlength="500" placeholder="'+esc(AI_EX[Math.floor(Math.random()*AI_EX.length)])+'"></textarea></div>'
    +'<div class="aibtn"><label class="btn ghost" for="aiCam">📷 찍기</label><label class="btn ghost" for="aiAlb">🖼 앨범</label><button type="button" class="btn hot" id="aiGo"'+(AIC.busy?" disabled":"")+'>검색</button></div>'
    +'<input type="file" accept="image/*" capture="environment" id="aiCam" hidden><input type="file" accept="image/*" id="aiAlb" hidden>'
-   +'<p class="sub" id="aiLeft" style="margin:8px 0 0">오늘 남은 질문 '+aiLeft()+'번 · 도우미 답은 틀릴 수 있어요. 위험하면 바로 119나 대원설비에 전화하세요.</p>'
+   +'<p class="sub" id="aiLeft" style="margin:8px 0 0">오늘 남은 질문 '+aiLeft()+'번 · AI 답은 틀릴 수 있어요. 위험하면 바로 119나 대원설비에 전화하세요.</p>'
    +'<button type="button" class="btn" id="aiBook" style="margin-top:10px">대원설비에 접수하기</button>');
   var lg=$("#aiLog");if(lg)lg.scrollTop=lg.scrollHeight;
   [["#aiCam"],["#aiAlb"]].forEach(function(x){var i=$(x[0]);if(i)i.onchange=function(){var f=i.files&&i.files[0];if(!f)return;shrink(f,1024,.7).then(function(d){if(d){AIC.ph=d;aiRedraw(true);}});};});
   var px=$("#aiPhX");if(px)px.onclick=function(){AIC.ph=null;aiRedraw(true);};
   $("#aiGo").onclick=aiSend;
   $("#aiBook").onclick=function(){var q=AIC.msgs.filter(function(m){return m.r==="u"&&m.t;}).map(function(m){return m.t;}),a=AIC.msgs.filter(function(m){return m.r==="a"&&!m.err;}).pop();
-    bookSheet("","",q.length?("[집 도우미에서] "+q.join(" / ")+(a?"\n도우미 답: "+a.t.replace(/\*\*/g,"").replace(/\s+/g," ").slice(0,200):"")):"");};}
+    bookSheet("","",q.length?("[AI 질문에서] "+q.join(" / ")+(a?"\nAI 답: "+a.t.replace(/\*\*/g,"").replace(/\s+/g," ").slice(0,200):"")):"");};}
 function aiRedraw(keepQ){var q=$("#aiQ"),v=q?q.value:"";aiSheet();if(keepQ){var q2=$("#aiQ");if(q2)q2.value=v;}}
 function aiSend(){if(AIC.busy)return;var q=$("#aiQ"),t=(q?q.value:"").trim(),ph=AIC.ph;if(!t&&!ph){toast("궁금한 것을 적거나 사진을 넣어 주세요");return;}
   if(!aiLeft()){toast("오늘 질문을 다 쓰셨어요. 내일 다시 물어보시거나 접수해 주세요");return;}
@@ -935,7 +937,7 @@ function aiSend(){if(AIC.busy)return;var q=$("#aiQ"),t=(q?q.value:"").trim(),ph=
     if(gm){(gm.groundingChunks||[]).forEach(function(k){if(k.web&&k.web.uri&&src.length<3)src.push({title:k.web.title,uri:k.web.uri});});sug=gm.searchEntryPoint&&gm.searchEntryPoint.renderedContent||"";}
     AIC.msgs.push({r:"a",t:t||"답을 만들지 못했어요. 다시 물어봐 주세요.",src:src,sug:sug});})
    .catch(function(e){var c=e&&e.customErrorData,d=String((e&&e.message)||e).replace(/https?:\/\/\S+/g,"").replace(/\s+/g," ");
-     if(c)d=(c.status||"")+" "+(c.statusText||"")+" · "+((c.errorDetails||[]).map(function(x){return x.reason||x["@type"]||"";}).join(",")+" "+d);d=((e&&e.code?e.code+" ":"")+d).slice(0,300);AIC.msgs.push({r:"a",err:true,t:"지금은 도우미가 답하지 못해요. 궁금한 점은 접수나 전화로 남겨 주세요.",why:d});})
+     if(c)d=(c.status||"")+" "+(c.statusText||"")+" · "+((c.errorDetails||[]).map(function(x){return x.reason||x["@type"]||"";}).join(",")+" "+d);d=((e&&e.code?e.code+" ":"")+d).slice(0,300);AIC.msgs.push({r:"a",err:true,t:"지금은 AI가 답하지 못해요. 궁금한 점은 접수나 전화로 남겨 주세요.",why:d});})
    .then(function(){AIC.busy=false;if($("#aiLog"))aiSheet();});}
 /* ---------- 사진 줄이기 ---------- */
 function shrink(f,max,q){return new Promise(function(ok){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var w=im.width,h=im.height,k=Math.min(1,max/Math.max(w,h));var c=document.createElement("canvas");c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",q));};im.onerror=function(){ok(null);};im.src=r.result;};r.onerror=function(){ok(null);};r.readAsDataURL(f);});}
