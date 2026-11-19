@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261120f">
+<meta name="page-ver" content="20261120h">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -838,7 +838,7 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
    +mrow("boardm","board","부모님 전화화면설정",S.pm&&S.pm.on?"이 폰이 큰 전화화면으로 쓰이고 있어요":S.houses.some(function(h){return h.bid;})?"연결된 부모님 폰 "+S.houses.filter(function(h){return h.bid;}).length+"대":"자녀가 부모님 폰의 큰 전화화면을 챙겨 드려요")
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261120f</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261120h</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>접수할 때는 고른 집뿐 아니라 등록한 집 목록(이름·주소·연락받을 번호·주택 종류 등)이 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>보낸 정보를 지우고 싶으시면 더보기 → 개인정보 수정 → "내 정보 지우기"에서 삭제 요청을 보내 주세요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
@@ -884,7 +884,7 @@ function aiSys(){var H=mainHouse(),info=H?infoLine(H):[];
    "- 쉬운 우리말로 짧게(3~6줄) 답한다. 전문용어는 풀어서 말한다.",
    "- 집·설비 질문만 돕는다: 보일러(에러코드·난방·온수), 수도·누수·동파, 하수·막힘, 정화조, 전기 기본, 가스 안전, 집 관리. 다른 주제는 '집에 관한 것만 도와드릴 수 있어요'라고 답한다.",
    "- 위험하면 맨 먼저 안전부터: 가스 냄새 → 밸브 잠그고 창문 열고 밖으로, 119 또는 가스사고 신고 1544-4500. 타는 냄새·연기·감전 위험 → 차단기 내리고 119. 물이 크게 넘치면 계량기 쪽 밸브부터 잠그게 한다.",
-   "- 보일러 에러코드는 회사·모델마다 다르다. 회사를 모르면 보일러 앞면이나 화면 사진을 부탁한다. 검색으로 확인하고, 확실하지 않으면 '아마'라고 말하고 설명서나 제조사 확인을 권한다.",
+   "- 보일러 에러코드는 회사·모델마다 뜻이 다르다. 고객이 회사 이름을 말하지 않았으면 뜻을 짐작해 말하지 말고 먼저 이렇게 묻는다: '어느 회사 보일러인가요? (경동·귀뚜라미·린나이 등) 보일러 앞면을 찍어 보내 주셔도 돼요.' 회사를 알면 검색으로 확인해 답하고, 확실하지 않으면 '아마'라고 말하고 설명서나 제조사 확인을 권한다.",
    "- 고객이 혼자 해도 안전한 것만 안내한다(전원 껐다 켜기, 밸브 확인, 필터 청소 등). 분해, 가스 배관, 전기 내부 작업은 하지 말라고 한다.",
    "- 수리가 필요해 보이면 마지막 줄에 '대원설비에 접수하시면 확인 후 전화드려요.'라고 쓴다.",
    "- 요금은 말하지 않는다."+(pr?" 단 고객이 물으면 이 안내만 그대로 알려 준다: "+pr:""),
@@ -907,11 +907,11 @@ function aiMsgHtml(m){if(m.r==="u")return '<div class="aim u">'+(m.ph?'<img src=
   return '<div class="aim a'+(m.err?' err':'')+'"><div>'+aiFmt(m.t)+'</div>'+(m.why?'<div class="aisrc">(오류: '+esc(m.why)+')</div>':'')
    +(m.src&&m.src.length?'<div class="aisrc">출처: '+m.src.map(function(s){return '<a href="'+esc(s.uri)+'" target="_blank" rel="noopener">'+esc(s.title||"링크")+'</a>';}).join(" · ")+'</div>':'')
    +(m.sug?'<iframe class="aisug" sandbox="allow-popups allow-popups-to-escape-sandbox" title="Google 검색 제안" srcdoc="'+esc(m.sug)+'"></iframe>':'')+'</div>';}
-function aiLogHtml(){if(!AIC.msgs.length)return '<div class="aim a"><div>안녕하세요. 집에 관해 궁금한 것을 물어보세요.<br>예: "보일러에 E-03이 떠요", "수도에서 녹물이 나와요"<br>보일러 화면이나 고장 난 곳을 사진으로 찍어 보내셔도 돼요.</div></div>';return AIC.msgs.map(aiMsgHtml).join("");}
+function aiLogHtml(){if(!AIC.msgs.length)return '<div class="aim a"><div>안녕하세요. 집에 관해 궁금한 것을 물어보세요.<br>보일러는 <b>회사 이름</b>(경동·귀뚜라미·린나이 등)과 <b>화면에 뜬 숫자</b>를 같이 적어 주세요. 회사마다 숫자 뜻이 달라요.<br>보일러 앞면이나 고장 난 곳을 찍어 보내시면 더 정확해요.</div></div>';return AIC.msgs.map(aiMsgHtml).join("");}
 function aiSheet(){if(!aiOn())return;
   sheet("집 도우미",'<div class="ailog" id="aiLog" aria-live="polite">'+aiLogHtml()+(AIC.busy?'<div class="aim a" id="aiWait"><div>생각하는 중…</div></div>':'')+'</div>'
    +'<div id="aiPh">'+(AIC.ph?'<div class="aiphv"><img src="'+AIC.ph+'" alt="보낼 사진"><button type="button" class="btn ghost sm" id="aiPhX">사진 빼기</button></div>':'')+'</div>'
-   +'<div class="field"><label class="lbl" for="aiQ">궁금한 것</label><textarea id="aiQ" rows="2" maxlength="500" placeholder="예: 보일러에 E-03이 떠요"></textarea></div>'
+   +'<div class="field"><label class="lbl" for="aiQ">궁금한 것</label><textarea id="aiQ" rows="2" maxlength="500" placeholder="예: 귀뚜라미 기름보일러에 02가 깜박여요"></textarea></div>'
    +'<div class="aibtn"><label class="btn ghost" for="aiCam">📷 찍기</label><label class="btn ghost" for="aiAlb">🖼 앨범</label><button type="button" class="btn hot" id="aiGo"'+(AIC.busy?" disabled":"")+'>검색</button></div>'
    +'<input type="file" accept="image/*" capture="environment" id="aiCam" hidden><input type="file" accept="image/*" id="aiAlb" hidden>'
    +'<p class="sub" id="aiLeft" style="margin:8px 0 0">오늘 남은 질문 '+aiLeft()+'번 · 도우미 답은 틀릴 수 있어요. 위험하면 바로 119나 대원설비에 전화하세요.</p>'
