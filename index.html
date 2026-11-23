@@ -273,6 +273,7 @@ function picking(){try{var t=+sessionStorage.getItem("jr_pick");return t&&Date.n
 "use strict";
 var DB_URL="https://daewon-booking-default-rtdb.asia-southeast1.firebasedatabase.app";var CALL_NO="010-2068-5289";
 var PAGE="https://cdh7657.github.io/nusu/";
+var HERE=PAGE+(/[?&]go=book(&|$)/.test(location.search)?"?go=book":""); /* 카톡 등에서 바깥 브라우저로 넘길 때 QR 주소 유지 */
 var KEY="jr2";
 var $=function(s){return document.querySelector(s);};
 var esc=function(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
@@ -316,13 +317,13 @@ var mainHouse=function(){return S.houses[0];};
 var UA=navigator.userAgent,IOS=/iPhone|iPad|iPod/.test(UA),AND=/Android/i.test(UA),KAKAO=/KAKAOTALK/i.test(UA);
 var INAPP=KAKAO||/NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|BAND\//i.test(UA);
 var STANDALONE=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone;
-function openOut(){if(INAPP){goOut();return;}if(KAKAO)location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(PAGE);
-  else if(AND)location.href="intent://"+PAGE.replace(/^https:\/\//,"")+"#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="+encodeURIComponent(PAGE)+";end";
+function openOut(){if(INAPP){goOut();return;}if(KAKAO)location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(HERE);
+  else if(AND)location.href="intent://"+HERE.replace(/^https:\/\//,"")+"#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="+encodeURIComponent(HERE)+";end";
   setTimeout(function(){toast(IOS?"오른쪽 아래 ⋯ 를 누르고 \"Safari로 열기\"를 선택하세요":"화면이 안 바뀌면 ⋮ 를 누르고 \"다른 브라우저로 열기\"를 선택하세요");},1500);}
 /* 카톡 등 앱 안에서 열리면 버튼 없이 바로 크롬(아이폰은 사파리)으로 넘김 */
-function goOut(){var chrome="intent://"+PAGE.replace(/^https:\/\//,"")+"#Intent;scheme=https;package=com.android.chrome;end";
-  if(AND){location.href=chrome;if(KAKAO)setTimeout(function(){if(!document.hidden)location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(PAGE);},1500);}
-  else if(KAKAO)location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(PAGE);}
+function goOut(){var chrome="intent://"+HERE.replace(/^https:\/\//,"")+"#Intent;scheme=https;package=com.android.chrome;end";
+  if(AND){location.href=chrome;if(KAKAO)setTimeout(function(){if(!document.hidden)location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(HERE);},1500);}
+  else if(KAKAO)location.href="kakaotalk://web/openExternal?url="+encodeURIComponent(HERE);}
 if(INAPP&&!STANDALONE){var ia=$("#inapp");ia.hidden=false;ia.innerHTML='<p class="sub">'+(IOS?"사파리":"크롬")+'으로 여는 중이에요… 열리지 않으면 <button type="button" class="lnk" id="outB" style="padding:0">여기를 누르세요</button></p>';$("#outB").onclick=goOut;try{goOut();}catch(e){}}
 var installEv=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();installEv=e;var ae=document.activeElement;if((S.tab==="more"||S.tab==="home")&&!$("#sheetRoot").innerHTML&&!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)))render();});
 window.addEventListener("appinstalled",function(){installEv=null;toast("홈 화면에 추가했어요");render();});
@@ -335,10 +336,13 @@ function installGuide(){
   sheet("앱처럼 쓰기",'<p>홈 화면에 아이콘을 만들어 두면 앱처럼 바로 열 수 있어요.</p>'+how);}
 
 /* ---------- 화면 ---------- */
-S.tab="home";
+/* 명함·스티커 QR(?go=book)로 들어오면 등록 화면 없이 바로 접수 화면 */
+var QRBOOK=/[?&]go=book(&|$)/.test(location.search);
+S.tab=QRBOOK?"book":"home";
 var TABS=["home","house","book","more"];
 function goTab(t,dir){S.tab=t;closeSheet();render();scrollTo(0,0);var m=$("#main");if(dir&&m.animate){try{m.animate([{transform:"translateX("+(dir*34)+"px)",opacity:.5},{transform:"none",opacity:1}],{duration:170,easing:"ease-out"});}catch(e){}}}
 function render(){
+  if(!S.me&&QRBOOK&&joinStep!==2){$("#tabs").hidden=true;$("#main").innerHTML=vQuick();quickWire();return;}
   if(!S.me||joinStep===2){$("#tabs").hidden=true;$("#main").innerHTML=vJoin();joinWire();return;}
   if(TABS.indexOf(S.tab)<0)S.tab="home";
   $("#tabs").hidden=false;
@@ -432,6 +436,33 @@ function joinWire(){
     if(miss.length){ferr("jErr",miss.join(", ")+"을(를) 입력해 주세요.");return;}
     if(!$("#jOk").checked){ferr("jErr","개인정보 수집·이용에 동의해 주세요.");return;}
     joinMe={name:n,phone:fmtTel(t)};joinH=h;joinStep=2;render();scrollTo(0,0);});}
+/* ---------- QR 바로 접수 (처음 온 손님: 등록과 접수를 한 화면에서) ---------- */
+function vQuick(){var s='<div class="ptitle"><h1>수리 접수</h1><p class="sub">아래만 적어 보내 주시면 확인 후 바로 전화드려 방문 일정을 잡아 드립니다.</p></div><form id="qkF" novalidate style="display:flex;flex-direction:column;gap:16px">';
+  s+='<div class="box"><div class="field"><span class="lbl"><span class="num">1</span>어떤 도움이 필요하세요?</span><div class="svc3">'+svcBtns(SVC3)+'</div><div class="svc5">'+svcBtns(SVC5)+'</div></div></div>';
+  s+='<div class="box"><div class="field"><label for="qkMemo"><span class="num">2</span>상황을 간단하게 설명해 주세요 <span class="sub">(선택)</span></label><textarea id="qkMemo" maxlength="1000" placeholder="예) 보일러실 배관에서 물이 떨어져요. 어제부터 시작됐어요.">'+esc(BK.memo)+'</textarea></div>'
+    +'<div class="field"><span class="lbl">사진 <span class="sub">(선택, 최대 3장)</span></span><div class="phs" id="phs"></div><label class="btn ghost" for="bkPh" id="phAdd" style="cursor:pointer">+ 사진 추가</label><input id="bkPh" type="file" accept="image/*" multiple hidden></div></div>';
+  s+='<div class="box"><span class="lbl"><span class="num">3</span>연락처와 주소</span><div class="row2"><div class="field"><label for="jName">이름</label><input id="jName" autocomplete="name" maxlength="40" placeholder="홍길동"></div><div class="field"><label for="jTel">전화번호</label><input id="jTel" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="010-1234-5678"></div></div>'
+    +houseForm(null,true)
+    +'<div><label class="chk"><input id="jOk" type="checkbox"><span>개인정보 수집·이용에 동의합니다 (필수)</span></label><details><summary>수집 내용 보기</summary><p>'+CONSENT_TXT+'</p></details></div></div>';
+  s+='<div class="hp" aria-hidden="true"><label for="bkWeb">웹사이트</label><input id="bkWeb" type="text" tabindex="-1" autocomplete="off"></div>';
+  s+='<p class="err" id="qkErr" role="alert" hidden></p><button type="submit" class="btn hot" id="qkSend">접수하기</button></form>';
+  s+='<div class="callnow"><a class="btn ghost" href="tel:'+dg(CALL_NO)+'">바로 전화하기</a></div>';
+  s+='<p class="sub" style="text-align:center">적어 주신 이름·전화번호·주소는 이 휴대폰에 저장돼서 다음부터는 다시 적지 않으셔도 돼요.</p>';
+  return s;}
+function quickWire(){var f=$("#qkF");if(!f)return;wireForms($("#main"));
+  [].forEach.call(f.querySelectorAll("[data-svc]"),function(b){b.onclick=function(){BK.svc=b.dataset.svc;[].forEach.call(f.querySelectorAll("[data-svc]"),function(x){x.classList.toggle("on",x===b);});};});
+  $("#qkMemo").addEventListener("input",function(){BK.memo=this.value;});
+  function phDraw(){var b=$("#phs");if(!b)return;b.innerHTML="";BK.PH.forEach(function(d,i){var w=document.createElement("div");w.className="ph";var im=new Image();im.src=d;im.alt="첨부 사진";var x=document.createElement("button");x.type="button";x.textContent="×";x.setAttribute("aria-label","사진 빼기");x.onclick=function(){BK.PH.splice(i,1);phDraw();};w.appendChild(im);w.appendChild(x);b.appendChild(w);});$("#phAdd").hidden=BK.PH.length>=3;}
+  phDraw();
+  $("#bkPh").addEventListener("change",function(){var self=this,fs=[].slice.call(this.files||[]).slice(0,3-BK.PH.length);fs.reduce(function(p,fl){return p.then(function(){return shrink(fl,1000,0.7).then(function(d){if(d)BK.PH.push(d);});});},Promise.resolve()).then(function(){self.value="";phDraw();});});
+  f.addEventListener("submit",function(e){e.preventDefault();if($("#bkWeb").value)return;
+    var n=$("#jName").value.trim(),t=$("#jTel").value.trim(),miss=[];
+    if(!BK.svc)miss.push("필요한 도움");if(!n)miss.push("이름");if(dg(t).length<9)miss.push("전화번호");if(!$("#hAddr").value.trim())miss.push("주소");
+    if(miss.length){ferr("qkErr",miss.join(", ")+"을(를) 알려 주세요.");return;}
+    if(!$("#jOk").checked){ferr("qkErr","개인정보 수집·이용에 동의해 주세요.");return;}
+    var me={name:n,phone:fmtTel(t)},h=readHouse({id:uid()});
+    if(!S.joinedAt)S.joinedAt=Date.now();
+    send({kind:"예약",work:BK.svc,note:("[QR 접수] "+BK.memo.trim()).trim(),dates:[],photos:BK.PH.slice(),contact:"",me:me,newHouse:h},h,$("#qkSend"),"qkErr");});}
 function finishJoin(){S.me=joinMe;S.consent=true;S.joinedAt=Date.now();S.houses=[joinH];joinStep=1;joinH=null;S.tab="home";save();render();scrollTo(0,0);toast("등록을 마쳤어요");memberSync();}
 
 /* ---------- 홈 (정보창) ---------- */
