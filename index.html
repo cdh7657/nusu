@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
-<meta name="page-ver" content="20261120k">
+<meta name="page-ver" content="20261127a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>집수리예약</title>
 <meta name="theme-color" content="#33261a">
@@ -273,7 +273,7 @@ function picking(){try{var t=+sessionStorage.getItem("jr_pick");return t&&Date.n
 "use strict";
 var DB_URL="https://daewon-booking-default-rtdb.asia-southeast1.firebasedatabase.app";var CALL_NO="010-5425-5289";
 var PAGE="https://cdh7657.github.io/nusu/";
-var HERE=PAGE+(/[?&]go=book(&|$)/.test(location.search)?"?go=book":""); /* 카톡 등에서 바깥 브라우저로 넘길 때 QR 주소 유지 */
+var HERE=PAGE+(/[?&]go=book(&|$)/.test(location.search)?"?go=book":/[?&]go=leak/.test(location.search)?location.search:""); /* 카톡 등에서 바깥 브라우저로 넘길 때 QR 주소 유지 */
 var KEY="jr2";
 var $=function(s){return document.querySelector(s);};
 var esc=function(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
@@ -470,7 +470,7 @@ function winterOn(){var d=new Date(),m=d.getMonth()+1,dd=d.getDate();return (m==
 function leakDue(){var ym=today().slice(0,7);return S.houses.filter(function(h){return !S.checks.some(function(c){return c.kind==="누수"&&c.houseId===h.id&&String(c.date).slice(0,7)===ym;});});}
 var CONSENT_TXT='수집 항목: 이름, 전화번호, 등록한 집의 주소·연락받을 번호·집 정보(주택 종류·크기·물·하수·난방), 상황 설명, 사진(선택), 희망 날짜·시간. 이용 목적: 고객 관리(등록한 이름·전화번호), 접수 확인과 일정 연락, 방문 준비, 그리고 작업을 맡는 업체(협력업체 포함)에 연락처·주소·작업 내용 전달. 점검 기록과 점검 사진은 이 휴대폰에만 저장되고 보내지 않습니다. AI에게 물어보기에 적은 글과 사진은 답을 만들기 위해 Google(Gemini)로 보내지며, 대원설비건축은 저장하지 않습니다. 보관 기간: 작업 종료 후 1년, 이후 삭제. 동의하지 않으면 접수할 수 없고, 전화로 문의하실 수 있습니다.';
 function vHome(){var h='<div class="box hero"><p class="hi">'+esc(S.me.name)+'님 댁</p>'+HERO_BIG+INTRO_ONE+'<button type="button" class="btn hot" data-go="tab" data-t="book">고장·수리 접수하기</button>'+(aiOn()?'<button type="button" class="btn" data-go="ai" style="margin-top:8px">💬 AI에게 물어보기</button>':'')+HERO_DECO+'</div>'+vCalls();
-  var al='';
+  var al=leakHomeHtml();
   if(winterOn())al+='<div class="box warn"><h3>겨울철 동파 대비</h3><p>열선이 설치된 곳은 전원이 연결되어 있는지, 정상적으로 작동하는지 확인해 주세요. 기온이 크게 떨어지는 날에는 수도꼭지를 조금 틀어 두면 동파를 막을 수 있어요.</p></div>';
   var due=leakDue();if(due.length)al+='<button type="button" class="item hot" data-go="leak" data-h="'+esc(due[0].id)+'"><span class="m"><span class="t">이번 달 누수 점검이 남아 있어요</span><span class="s" style="display:block">'+esc(due.map(function(x){return x.name;}).join(", "))+' · 계량기 사진 두 장이면 끝나요</span></span><span class="tag">점검하기</span></button>';
   S.reqs.filter(function(r){return (r.st==="going"&&Date.now()-(r.stAt||0)<864e5)||(r.st==="done"&&r.rpt&&Date.now()-(r.stAt||0)<7*864e5)||(r.st==="confirmed"&&r.vdate>=plus(0))||(r.st==="partner"&&Date.now()-(r.stAt||0)<7*864e5)||(r.st==="canceled"&&Date.now()-(r.stAt||0)<3*864e5);}).sort(function(a,b){return (a.vdate||"").localeCompare(b.vdate||"");}).forEach(function(r){var H=house(r.houseId);
@@ -684,6 +684,7 @@ function rptSheet(id){var r=S.reqs.find(function(x){return x.id===id;});if(!r||!
   sheet("작업 완료 보고서",'<div class="rpt"><p class="sub" style="margin:0 0 10px">'+esc(r.work||"")+' · '+esc(H?H.name:(r.houseName||""))+'</p>'+row("작업일",p.date?dshow(p.date):"")+row("한 일",p.txt)+row("쓴 부품",p.parts)+row("보증",w)+row("당부",p.tip)
    +(ph.length?'<div class="rph">'+ph.map(function(src,i){return /^data:image\//.test(src)?'<figure><img src="'+src+'" alt="'+esc(cap[i]||"작업 사진")+'"><figcaption>'+esc(cap[i]||"")+'</figcaption></figure>':"";}).join("")+'</div>':'')+'</div>');}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-go]");if(!b)return;var g=b.dataset.go;
+  if(/^leak./.test(g)){leakGo(g,b);return;}
   if(g==="book")bookSheet(b.dataset.w||"",b.dataset.h||"",b.dataset.n||"");else if(g==="ask")askSheet(b.dataset.n||"");else if(g==="install")installGuide();else if(g==="ai")aiSheet();else if(g==="share")share();else if(g==="qr")qrShow();
   else if(g==="leak"){closeSheet();S.tab="house";S.chkH=b.dataset.h||S.chkH;render();scrollTo(0,0);leakSheet(S.chkH);}
   else if(g==="heatchk"){heatSheet(b.dataset.h);}
@@ -833,7 +834,8 @@ function delHouse(id){var b=document.querySelector('[data-go="hdel"]');if(b&&!b.
 function addCheck(H,kind,ok,result,extra){var c={id:uid(),ts:Date.now(),date:today(),houseId:H.id,kind:kind,ok:ok,result:result};if(extra)for(var k in extra)c[k]=extra[k];S.checks.push(c);
   var keep=S.checks.filter(function(x){return x.photos;}).sort(function(a,b){return b.ts-a.ts;}).slice(6).forEach(function(x){delete x.photos;});save();}
 function delCheck(id){var b=document.querySelector('[data-go="cdel"][data-id="'+id+'"]');if(b&&!b.dataset.arm){b.dataset.arm="1";b.textContent="한 번 더";return;}S.checks=S.checks.filter(function(c){return c.id!==id;});save();render();}
-function leakSheet(hid){var H=house(hid);if(!H)return;
+function leakSheet(hid,photo){var H=house(hid);if(!H)return;
+  if(H.leak&&!photo){sheet("누수 점검",'<p>이 집에는 <b>누수알림기</b>가 있어서 계량기 밸브만 잠그면 10분 안에 확인돼요.</p><button type="button" class="btn hot" data-go="leaktest" data-h="'+esc(H.id)+'">누수알림기로 점검하기</button><button type="button" class="btn ghost" id="lkPhoto">계량기 사진으로 점검하기</button>');$("#lkPhoto").onclick=function(){leakSheet(hid,true);};return;}
   if(has(H.water,"지하수")){
     sheet("누수 자가체크 · 지하수",'<ol class="how"><li>집 안 수도꼭지와 물 쓰는 기계(세탁기, 보일러 보충수 등)를 모두 잠급니다</li><li>10분쯤 기다리며 펌프 소리를 들어 봅니다</li><li>아무도 물을 안 쓰는데 <b>펌프가 혼자 켜졌다 꺼지면</b> 어딘가 새고 있을 수 있어요</li></ol><div class="big2"><button type="button" class="btn" id="lkOk">안 켜져요</button><button type="button" class="btn hot" id="lkBad">혼자 켜져요</button></div><button type="button" class="btn ghost" data-go="ask" data-n="펌프 위치를 잘 모르겠어요">펌프를 못 찾겠어요</button>');
     $("#lkOk").onclick=function(){addCheck(H,"누수",true,"이상 없음 (펌프)");closeSheet();render();toast("이번 달 점검을 기록했어요");};
@@ -867,9 +869,10 @@ function vMore(){var h='<div class="ptitle"><h1>더보기</h1></div>';
   h+='<div class="menu">'+(S.me?mrow("me","me","개인정보 수정",esc(S.me.name)+" · "+esc(S.me.phone)+" · 집 "+S.houses.length+"곳"):'')
    +mrow("backupm","backup","백업·복원",S.lastBackup?"마지막 백업 "+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR")):"아직 백업하지 않았어요")
    +(STANDALONE?'':mrow("install","install","앱처럼 쓰기",INAPP?(IOS?"사파리로 열기":"크롬으로 열기"):"홈 화면에 아이콘 만들기"))
+   +mrow("leakmenu","leak","누수알림기",lkHouses().length?"연결된 집 "+lkHouses().length+"곳":"물이 새면 휴대폰으로 알려 드려요")
    +mrow("boardm","board","부모님 전화화면설정",S.pm&&S.pm.on?"이 폰이 큰 전화화면으로 쓰이고 있어요":S.houses.some(function(h){return h.bid;})?"연결된 부모님 폰 "+S.houses.filter(function(h){return h.bid;}).length+"대":"자녀가 부모님 폰의 큰 전화화면을 챙겨 드려요")
    +mrow("privacy","privacy","개인정보 안내","")+'</div>';
-  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261120k</p>';return h;}
+  h+='<p class="foot">대원설비건축 · 집수리예약 · 버전 20261127a</p>';return h;}
 function backupSheet(){sheet("백업·복원",'<p>집 정보와 기록은 이 휴대폰에 저장돼요. 휴대폰을 바꾸기 전에 백업 파일을 만들어 카톡 "나와의 채팅"에 보관해 두세요. 새 휴대폰에서 그 파일로 그대로 되살릴 수 있어요.</p>'+(S.lastBackup?'<p class="sub">마지막 백업: '+esc(new Date(S.lastBackup).toLocaleDateString("ko-KR"))+'</p>':'')+'<button type="button" class="btn" data-go="backup">백업 파일 만들기</button><button type="button" class="btn ghost" data-go="restore">백업 불러오기</button>');}
 function shareSheet(){sheet("이웃·친구에게 소개하기",'<p class="sub">집 고칠 일이 있는 분께 이 앱을 소개해 주세요.</p><button type="button" class="btn" data-go="share">카톡 등으로 보내기</button><a class="btn ghost" href="'+esc(smsUrl())+'">문자로 보내기</a><button type="button" class="btn ghost" data-go="qr">QR 보여주기</button>');}
 function privacySheet(){sheet("개인정보 안내",'<p>등록한 이름·전화번호는 대원설비건축이 고객 관리에 사용해요.</p><p>접수할 때는 고른 집뿐 아니라 등록한 집 목록(이름·주소·연락받을 번호·주택 종류 등)이 함께 전달돼, 방문 준비와 일정 연락에 쓰여요.</p><p>보낸 정보를 지우고 싶으시면 더보기 → 개인정보 수정 → "내 정보 지우기"에서 삭제 요청을 보내 주세요.</p><p>점검 기록과 점검 사진은 이 휴대폰에만 저장되고 어디에도 보내지 않아요.</p><p class="sub">'+CONSENT_TXT+'</p>');}
@@ -1029,6 +1032,173 @@ function memberSync(){if(!S.me||memBusy)return;var key=dg(S.me.phone);if(key.len
   if(!S.dk){S.dk=reqKey().slice(-12);save();}var body={name:S.me.name,phone:S.me.phone,joinedAt:S.joinedAt||Date.now(),lastSeen:Date.now(),installed:inst,houses:S.houses.length,area:area,app:2,dk:S.dk,hl:hl,hlAt:Date.now()};if(S.installedAt)body.installedAt=S.installedAt;
   memBusy=true;fetch(DB_URL+"/members/"+key+".json",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
    .then(function(r){if(!r.ok)throw 0;if(!S.joinedAt)S.joinedAt=body.joinedAt;S.member={key:key,inst:inst,name:S.me.name,day:day,houses:S.houses.length,area:area,hh:hh};memBusy=false;save();}).catch(function(){memBusy=false;});}
+/* ---------- 누수알림기 ----------
+   장치 → /leak/{코드}/st(상태) · alerts(알림) · hist(1시간 기록) · live(잠금 테스트 중 실시간)
+   고객앱 → /leak/{코드}/owner(누구 집) · cfg(설정) · tokens(푸시 주소) · cmd(잠금 테스트 시작·알림 확인)
+   관리 → /leakIndex/{코드}(목록) · 접수는 기존 /requests 로 보내 관리앱에서 그대로 받음 */
+var LK={st:{},al:{},busy:false};
+var LK_CH="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function lkCode(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,10);}
+function lkOkCode(c){return c.length===10&&c.split("").every(function(x){return LK_CH.indexOf(x)>=0;});}
+function lkPretty(c){return c.slice(0,5)+"-"+c.slice(5);}
+function lkUrl(c,sub){return DB_URL+"/leak/"+c+(sub?"/"+sub:"")+".json";}
+function lkHouses(){return S.houses.filter(function(h){return h.leak;});}
+function lkNow(){return Math.floor(Date.now()/1000);}
+function lkAgo(t){if(!t)return "기록 없음";var d=lkNow()-t;if(d<120)return "방금";if(d<3600)return Math.floor(d/60)+"분 전";if(d<86400)return Math.floor(d/3600)+"시간 전";return Math.floor(d/86400)+"일 전";}
+function lkWhen(t){return t?new Date(t*1000).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"";}
+var LK_T={drip:"물을 안 쓰는데 조금씩 새는 것 같아요",decay:"물을 안 쓰는데 압력이 계속 내려가요",flow:"물이 1시간 넘게 계속 흐르고 있어요",offline:"누수알림기 연결이 끊겼어요"};
+function lkPut(c,sub,v,m){return fetch(lkUrl(c,sub),{method:m||"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});}
+function lkGet(c,sub,q){return fetch(lkUrl(c,sub)+(q||""),{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});}
+
+/* 상태 가져오기: 장치 상태 + 최근 알림 3개 */
+function leakSync(){var L=lkHouses();if(!L.length)return Promise.resolve();
+  return Promise.all(L.map(function(H){var c=H.leak;
+    return Promise.all([lkGet(c,"st").catch(function(){return null;}),lkGet(c,"alerts",'?orderBy=%22%24key%22&limitToLast=3').catch(function(){return null;}),lkGet(c,"cfg").catch(function(){return null;})])
+     .then(function(a){LK.st[c]=a[0];LK.cfg=LK.cfg||{};LK.cfg[c]=a[2];LK.al[c]=Object.keys(a[1]||{}).map(function(k){var x=a[1][k];x.id=k;return x;}).sort(function(x,y){return (y.t||0)-(x.t||0);});});}))
+   .then(function(){if(S.tab==="home"&&!document.getElementById("sh"))render();});}
+function lkOpen(c){var A=LK.al[c]||[];return A.filter(function(a){return !a.ack&&!a.learning&&lkNow()-(a.t||0)<3*86400;})[0];}
+function lkState(H){var c=H.leak,st=LK.st[c],a=lkOpen(c);
+  if(a)return {cls:"hot",t:LK_T[a.type]||"확인이 필요해요",s:lkWhen(a.t)+" · 눌러서 확인해 주세요",a:a};
+  if(!st)return {cls:"",t:"누수알림기 연결 확인 중",s:"장치가 아직 소식을 보내지 않았어요"};
+  if(lkNow()-st.t>90*60)return {cls:"hot",t:"누수알림기 연결이 끊겼어요",s:"마지막 연결 "+lkAgo(st.t)+" · 전원·와이파이를 확인해 주세요"};
+  var cf=(LK.cfg||{})[c]||{},learn=cf.learnUntil&&cf.learnUntil>lkNow()?" · 우리 집 평균을 배우는 중 ("+Math.ceil((cf.learnUntil-lkNow())/86400)+"일 남음)":"";
+  return {cls:"ok",t:"누수알림기 정상",s:"지금 "+(+st.p).toFixed(2)+" bar · "+lkAgo(st.t)+learn};}
+function leakHomeHtml(){return lkHouses().map(function(H){var x=lkState(H);
+  return '<button type="button" class="item '+x.cls+'" data-go="'+(x.a?"leakalert":"leakdev")+'" data-h="'+esc(H.id)+'"'+(x.a?' data-id="'+esc(x.a.id)+'"':'')+'><span class="m"><span class="t">'+esc(x.t)+'</span><span class="s" style="display:block">'+esc(H.name)+' · '+esc(x.s)+'</span></span><span class="tag'+(x.cls==="ok"?" ok":"")+'">'+(x.a?"확인":"보기")+'</span></button>';}).join("");}
+
+/* 연결하기: QR(?go=leak&dev=코드) 또는 코드 입력 */
+function leakLinkSheet(pre){var c=lkCode(pre||""),sel=(mainHouse()||{}).id,mode="prv";
+  var draw=function(err){sheet("누수알림기 연결",'<p>장치 옆면 스티커의 <b>코드 10자리</b>를 넣거나 QR을 찍어 주세요.</p>'
+    +'<div class="field"><label for="lkC">장치 코드</label><input id="lkC" autocomplete="off" autocapitalize="characters" placeholder="예: ABCDE-FGHJK" value="'+esc(c?lkPretty(c):"")+'"></div>'
+    +'<div class="field"><span class="lbl">어느 집에 달았나요?</span><div class="chips" id="lkH">'+S.houses.map(function(h){return '<button type="button" data-h="'+esc(h.id)+'" class="'+(h.id===sel?"on":"")+'">'+esc(h.name)+'</button>';}).join("")+'</div></div>'
+    +'<div class="field"><span class="lbl">설치 방식 (기사님이 골라 주세요)</span><div class="chips" id="lkM"><button type="button" data-m="prv" class="'+(mode==="prv"?"on":"")+'">감압밸브+탱크</button><button type="button" data-m="basic" class="'+(mode==="basic"?"on":"")+'">감압밸브 없음</button></div><p class="sub">감압밸브+탱크는 작은 누수까지, 감압밸브 없음은 크게 새거나 틀어 둔 것만 알려 줘요.</p></div>'
+    +(err?'<p class="err">'+esc(err)+'</p>':'')+'<button type="button" class="btn hot" id="lkGo">연결하기</button>');
+    $("#lkC").oninput=function(){c=lkCode(this.value);};
+    [].forEach.call(document.querySelectorAll("#lkH [data-h]"),function(b){b.onclick=function(){sel=b.dataset.h;c=lkCode($("#lkC").value);draw();};});
+    [].forEach.call(document.querySelectorAll("#lkM [data-m]"),function(b){b.onclick=function(){mode=b.dataset.m;c=lkCode($("#lkC").value);draw();};});
+    $("#lkGo").onclick=function(){c=lkCode($("#lkC").value);var H=house(sel);
+      if(!lkOkCode(c)){draw("코드 10자리를 다시 확인해 주세요.");return;}if(!H){draw("집을 골라 주세요.");return;}
+      var b=this;b.disabled=true;b.textContent="장치 확인 중…";
+      lkGet(c,"st").then(function(st){if(!st)throw "none";
+        return lkGet(c,"cfg").catch(function(){return null;}).then(function(cf){cf=cf||{};
+          var now=lkNow(),own={name:S.me.name,phone:S.me.phone,house:H.name,addr:H.addr||"",addr2:H.addr2||"",at:now};
+          var cfg={mode:mode};if(!cf.learnUntil)cfg.learnUntil=now+30*86400;if(!cf.base&&st.p>0.3)cfg.base=+st.p;
+          return Promise.all([lkPut(c,"owner",own),lkPut(c,"cfg",cfg,"PATCH"),fetch(DB_URL+"/leakIndex/"+c+".json",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:own.name,phone:own.phone,house:own.house,addr:own.addr+(own.addr2?" "+own.addr2:""),mode:mode,at:now})})]);});})
+       .then(function(){S.houses.forEach(function(h){if(h.leak===c)delete h.leak;});H.leak=c;save();leakSync();
+         sheet("연결됐어요 ✅",'<p><b>'+esc(H.name)+'</b>에 누수알림기를 연결했어요.</p><p>처음 <b>한 달</b>은 우리 집 물 쓰는 평균을 배우는 기간이에요. 물이 계속 흐르는 큰 누수는 오늘부터 바로 알려 드려요.</p><p>새는 게 궁금하시면 언제든 <b>잠금 테스트</b>로 직접 확인할 수 있어요.</p>'+leakPushBtn());})
+       .catch(function(e){b.disabled=false;b.textContent="연결하기";draw(e==="none"?"장치가 아직 인터넷에 연결되지 않았어요. 장치 와이파이 설정을 먼저 해 주세요. (코드도 다시 확인)":"연결하지 못했어요. 인터넷을 확인하고 다시 눌러 주세요.");});};};
+  draw();}
+
+/* 휴대폰 알림 켜기 (푸시) */
+function lkHash(t){var h=0;for(var i=0;i<t.length;i++){h=(h*31+t.charCodeAt(i))|0;}return "t"+(h>>>0).toString(36)+t.length;}
+function leakPushBtn(){if(S.pushTok&&window.Notification&&Notification.permission==="granted")return '<p class="sub">이 휴대폰으로 알림이 와요.</p>';
+  return '<button type="button" class="btn" data-go="leakpush">이 휴대폰으로 알림 받기</button>';}
+var LKM=null;
+function leakPushInit(ask){
+  if(!("serviceWorker" in navigator)||!window.Notification)return Promise.reject("nosupport");
+  return fetch(DB_URL+"/config/push.json",{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(cf){if(!cf||!cf.vapid)throw "novapid";
+    return (ask?Notification.requestPermission():Promise.resolve(Notification.permission)).then(function(p){if(p!=="granted")throw "denied";
+      return navigator.serviceWorker.register("firebase-messaging-sw.js").then(function(reg){var b="https://www.gstatic.com/firebasejs/"+AI_CFG.ver+"/";
+        return Promise.all([import(b+"firebase-app.js"),import(b+"firebase-messaging.js")]).then(function(m){var A=m[0],M=m[1];
+          var app=(A.getApps()||[]).filter(function(x){return x.name==="jr-push";})[0]||A.initializeApp(AI_CFG.web,"jr-push");
+          var ms=M.getMessaging(app);
+          if(!LKM){LKM=ms;M.onMessage(ms,function(p){var n=p&&p.notification||{};toast(n.title||"누수알림기 알림");leakSync();});}
+          return M.getToken(ms,{vapidKey:cf.vapid,serviceWorkerRegistration:reg});});});});})
+   .then(function(tok){if(!tok)throw "notoken";var old=S.pushTok;S.pushTok=tok;save();
+     return Promise.all(lkHouses().map(function(H){var c=H.leak;
+       return (old&&old!==tok?fetch(lkUrl(c,"tokens/"+lkHash(old)),{method:"DELETE"}).catch(function(){}):Promise.resolve()).then(function(){return lkPut(c,"tokens/"+lkHash(tok),tok);});}));});}
+function leakPush(btn){if(btn){btn.disabled=true;btn.textContent="알림 켜는 중…";}
+  leakPushInit(true).then(function(){closeSheet();render();toast("이제 이 휴대폰으로 누수 알림이 와요");})
+   .catch(function(e){if(btn){btn.disabled=false;btn.textContent="이 휴대폰으로 알림 받기";}
+     if(e==="denied")sheet("알림이 꺼져 있어요",'<p>휴대폰 설정에서 이 앱(또는 크롬)의 <b>알림 허용</b>을 켜 주세요.</p><ol class="how"><li>휴대폰 <b>설정 → 애플리케이션 → 크롬(또는 집수리예약)</b></li><li><b>알림</b>을 눌러 허용으로 바꿉니다</li><li>앱으로 돌아와 다시 "알림 받기"를 누릅니다</li></ol>');
+     else if(e==="nosupport")sheet("알림을 받으려면",IOS?'<p>아이폰은 <b>홈 화면에 추가한 앱</b>에서만 알림을 받을 수 있어요.</p><button type="button" class="btn" data-go="install">홈 화면에 추가하는 방법</button>':INAPP?'<p>카톡 안에서는 알림을 켤 수 없어요. 크롬으로 열어 주세요.</p><button type="button" class="btn" data-go="install">크롬으로 열기</button>':'<p>이 브라우저는 알림을 지원하지 않아요. 크롬으로 열어 주세요.</p>');
+     else if(e==="novapid")toast("알림 서버 준비 중이에요. 대원설비에 알려 주세요");
+     else toast("알림을 켜지 못했어요. 잠시 뒤 다시 해 주세요");});}
+
+/* 장치 화면 */
+function leakDevSheet(hid){var H=house(hid);if(!H||!H.leak)return;var c=H.leak,x=lkState(H),st=LK.st[c]||{},A=LK.al[c]||[],cf=(LK.cfg||{})[c]||{};
+  sheet("누수알림기 · "+H.name,'<div class="box '+x.cls+'"><p><b>'+esc(x.t)+'</b></p><p class="sub">'+esc(x.s)+'</p></div>'
+   +(st.t?'<div class="list"><div class="item"><span class="m"><span class="t">지금 압력</span></span><span class="tag">'+(+st.p).toFixed(2)+' bar</span></div>'
+     +(st.base?'<div class="item"><span class="m"><span class="t">물 안 쓸 때 압력</span></span><span class="tag">'+(+st.base).toFixed(2)+' bar</span></div>':'')
+     +'<div class="item"><span class="m"><span class="t">설치 방식</span></span><span class="tag">'+(cf.mode==="basic"?"감압밸브 없음":"감압밸브+탱크")+'</span></div></div>':'')
+   +'<button type="button" class="btn hot" data-go="leaktest" data-h="'+esc(H.id)+'">잠금 테스트 (10분)</button>'
+   +leakPushBtn()
+   +(A.length?'<div class="field"><span class="lbl">최근 알림</span>'+A.map(function(a){return '<p class="sub">'+esc(lkWhen(a.t))+' · '+esc(LK_T[a.type]||a.type)+(a.learning?" (학습 중·관리자만)":"")+(a.ack?" · 확인함":"")+'</p>';}).join("")+'</div>':'')
+   +'<p class="sub">장치 코드 '+esc(lkPretty(c))+'</p><button type="button" class="lnk" id="lkUn">이 집에서 연결 끊기</button>');
+  $("#lkUn").onclick=function(){if(!this.dataset.arm){this.dataset.arm=1;this.textContent="한 번 더 누르면 끊어요";return;}
+    if(S.pushTok)fetch(lkUrl(c,"tokens/"+lkHash(S.pushTok)),{method:"DELETE"}).catch(function(){});delete H.leak;save();closeSheet();render();toast("연결을 끊었어요");};}
+
+/* 알림 확인: 물 쓰는 중인지 묻고 → 아니면 잠금 테스트 → 새면 출동 접수 */
+function leakAlertSheet(hid,aid){var H=house(hid);if(!H||!H.leak)return;var c=H.leak;if(!aid){leakDevSheet(hid);return;}
+  var go=function(a){if(!a){leakDevSheet(hid);return;}
+    var off=a.type==="offline";
+    sheet(off?"연결이 끊겼어요":"누수 알림",'<div class="box hot"><p><b>'+esc(LK_T[a.type]||"확인이 필요해요")+'</b></p><p class="sub">'+esc(H.name)+' · '+esc(lkWhen(a.t))+(a.p!=null?' · 그때 압력 '+(+a.p).toFixed(2)+' bar':'')+'</p></div>'
+     +(off?'<ol class="how"><li>누수알림기 전원(콘센트)이 꽂혀 있는지 봅니다</li><li>집 와이파이 공유기가 켜져 있는지 봅니다</li><li>그래도 안 되면 접수해 주세요</li></ol><button type="button" class="btn hot" id="laBook">점검 접수하기</button>'
+      :'<p><b>지금 집에서 물을 쓰고 계신가요?</b></p><p class="sub">마당 물주기, 빨래, 목욕처럼 오래 쓰는 중이면 "쓰는 중"을 눌러 주세요.</p><div class="big2"><button type="button" class="btn" id="laUse">네, 쓰는 중이에요</button><button type="button" class="btn hot" id="laNo">아니요, 안 써요</button></div><button type="button" class="btn ghost" id="laBook">바로 출동 접수</button>'));
+    var ack=function(k){lkPut(c,"alerts/"+a.id,{ack:k,ackAt:lkNow()},"PATCH").catch(function(){});lkPut(c,"cmd",{ack:lkNow()},"PATCH").catch(function(){});a.ack=k;};
+    var bU=$("#laUse");if(bU)bU.onclick=function(){ack("use");closeSheet();render();toast("확인했어요. 다 쓰신 뒤에도 알림이 오면 잠금 테스트를 해 주세요");};
+    var bN=$("#laNo");if(bN)bN.onclick=function(){ack("test");leakTestSheet(hid,a);};
+    $("#laBook").onclick=function(){ack("book");leakBook(H,a,"");};};
+  var have=(LK.al[c]||[]).filter(function(x){return x.id===aid;})[0];
+  if(have){go(have);return;}
+  lkGet(c,"alerts/"+aid).then(function(a){if(a)a.id=aid;go(a);}).catch(function(){go(null);});}
+
+function leakBook(H,a,test){var t=a?(LK_T[a.type]||a.type):"";
+  var note="[누수알림기 "+lkPretty(H.leak)+"]"+(t?" 알림: "+t+" ("+lkWhen(a.t)+")":"")+(test?" / 잠금 테스트: "+test:"");
+  bookSheet("누수",H.id,note);}
+
+/* 잠금 테스트: 계량기 밸브를 잠그고 10분 동안 압력이 떨어지는지 봄 */
+var LKT=null;
+function leakTestSheet(hid,alert){var H=house(hid);if(!H||!H.leak)return;var c=H.leak;
+  if(LKT){clearInterval(LKT.iv);LKT=null;}
+  sheet("잠금 테스트",'<ol class="how"><li>집 안 수도꼭지를 <b>모두 잠급니다</b> (세탁기·정수기·보일러 보충수 포함)</li><li><b>계량기 옆 밸브</b>를 잠급니다</li><li>아래 <b>시작</b>을 누르고 10분 동안 물을 쓰지 않습니다</li></ol><p class="sub">장치가 신호를 받기까지 30초쯤 걸릴 수 있어요.</p><button type="button" class="btn hot" id="ltGo">시작</button>');
+  $("#ltGo").onclick=function(){var b=this;b.disabled=true;b.textContent="장치에 알리는 중…";
+    var now=lkNow();lkPut(c,"cmd",{testUntil:now+11*60,at:now},"PATCH").then(function(){
+      LKT={c:c,H:H,a:alert,pts:[],t0:0,start:now,iv:0};leakTestDraw();LKT.iv=setInterval(leakTestTick,3000);leakTestTick();})
+     .catch(function(){b.disabled=false;b.textContent="시작";toast("인터넷 연결을 확인하고 다시 눌러 주세요");});};}
+function leakTestTick(){var T=LKT;if(!T)return;if(!document.getElementById("ltBox")){clearInterval(T.iv);LKT=null;return;}
+  lkGet(T.c,"live").then(function(v){if(!v||!v.t||v.t<T.start-5)return;var last=T.pts[T.pts.length-1];if(!last||last.t!==v.t)T.pts.push({t:v.t,p:+v.p});if(!T.t0)T.t0=v.t;leakTestDraw();}).catch(function(){});
+  if(!T.t0&&lkNow()-T.start>90){clearInterval(T.iv);LKT=null;var box=document.getElementById("ltBox");if(box)box.innerHTML='<p><b>장치가 대답하지 않아요.</b></p><p class="sub">전원과 와이파이를 확인해 주세요. 계량기 밸브는 다시 열어 주세요.</p>';}}
+function leakTestDraw(){var T=LKT;if(!T)return;var P=T.pts,el=P.length?P[P.length-1].t-T.t0:0,p0=P.length?P[0].p:0,pn=P.length?P[P.length-1].p:0,drop=p0-pn;
+  var svg="";if(P.length>1){var mn=Math.min.apply(null,P.map(function(x){return x.p;})),mx=Math.max.apply(null,P.map(function(x){return x.p;}));if(mx-mn<0.3){mn=mx-0.3;}
+    svg='<svg viewBox="0 0 300 90" style="width:100%;height:90px"><polyline fill="none" stroke="currentColor" stroke-width="3" points="'+P.map(function(x){return (Math.min(600,x.t-T.t0)/600*300).toFixed(1)+","+(85-(x.p-mn)/(mx-mn)*80).toFixed(1);}).join(" ")+'"/></svg>';}
+  var done=el>=600,html;
+  if(!P.length)html='<p><b>장치 대답 기다리는 중…</b></p><p class="sub">물을 쓰지 말고 기다려 주세요.</p>';
+  else html='<p><b>'+(done?"테스트 끝":"재는 중 · "+Math.floor(el/60)+"분 "+(el%60)+"초 / 10분")+'</b></p>'+svg+'<p class="sub">처음 '+p0.toFixed(2)+' bar → 지금 '+pn.toFixed(2)+' bar ('+(drop>=0?"-":"+")+Math.abs(drop).toFixed(2)+')</p>';
+  if(done){clearInterval(T.iv);var c=T.c,H=T.H,res=drop>=0.15?"leak":drop<0.05?"ok":"maybe",line="10분 "+p0.toFixed(2)+"→"+pn.toFixed(2)+" bar";
+    addCheck(H,"누수",res==="ok","누수알림기 잠금 테스트 "+(res==="ok"?"이상 없음":res==="leak"?"누수 의심":"조금 떨어짐")+" ("+line+")");
+    if(T.a&&T.a.id)lkPut(c,"alerts/"+T.a.id,{test:{res:res,p0:p0,p1:pn,at:lkNow()}},"PATCH").catch(function(){});
+    lkPut(c,"cmd",{testUntil:0},"PATCH").catch(function(){});
+    html+=res==="leak"?'<div class="box hot"><p><b>압력이 떨어졌어요. 새는 곳이 있어 보여요.</b></p><p class="sub">계량기 밸브는 잠가 두시고, 출동 접수를 해 주세요.</p></div><button type="button" class="btn hot" id="ltBook">출동 접수하기</button>'
+     :res==="ok"?'<div class="box ok"><p><b>압력이 그대로예요. 새는 곳이 없어요.</b></p><p class="sub">계량기 밸브를 다시 열어 주세요.</p></div><button type="button" class="btn" data-x="1">닫기</button>'
+     :'<div class="box"><p><b>압력이 조금 떨어졌어요.</b></p><p class="sub">수도를 다 잠갔는지 확인하고 한 번 더 해 보시거나, 접수해 주세요.</p></div><button type="button" class="btn" id="ltAgain">다시 하기</button><button type="button" class="btn ghost" id="ltBook">출동 접수하기</button>';
+    LKT=null;var a=T.a;setTimeout(function(){var bb=$("#ltBook");if(bb)bb.onclick=function(){leakBook(H,a,line);};var ag=$("#ltAgain");if(ag)ag.onclick=function(){leakTestSheet(H.id,a);};},0);}
+  else html+='<button type="button" class="btn ghost" id="ltStop">그만하기</button>';
+  var box=document.getElementById("ltBox");
+  if(!box){sheet("잠금 테스트",'<div id="ltBox"></div>');box=document.getElementById("ltBox");}
+  box.innerHTML=html;var st=$("#ltStop");if(st)st.onclick=function(){if(LKT){clearInterval(LKT.iv);lkPut(LKT.c,"cmd",{testUntil:0},"PATCH").catch(function(){});LKT=null;}closeSheet();toast("계량기 밸브를 다시 열어 주세요");};}
+
+/* 더보기 → 누수알림기 */
+function leakMenu(){var L=lkHouses();
+  sheet("누수알림기",(L.length?'<div class="list" style="margin:0 -18px">'+L.map(function(H){var x=lkState(H);return '<button type="button" class="item '+x.cls+'" data-go="leakdev" data-h="'+esc(H.id)+'"><span class="m"><span class="t">'+esc(H.name)+'</span><span class="s" style="display:block">'+esc(x.t)+'</span></span><span class="tag">보기</span></button>';}).join("")+'</div>':'<p>물이 새면 휴대폰으로 알려 주는 장치예요. 대원설비 기사님이 설치해 드려요.</p>')
+   +'<button type="button" class="btn" data-go="leaklink">누수알림기 연결하기</button>'+(L.length?leakPushBtn():''));}
+
+function leakGo(g,b){var h=b.dataset.h;
+  if(g==="leakdev")leakDevSheet(h);else if(g==="leaktest")leakTestSheet(h,null);else if(g==="leakalert")leakAlertSheet(h,b.dataset.id);
+  else if(g==="leaklink")leakLinkSheet("");else if(g==="leakpush")leakPush(b);else if(g==="leakmenu")leakMenu();}
+
+/* 시작할 때: 주소로 들어온 경우 처리 + 상태·알림 주소 갱신 */
+function leakBoot(){var q=location.search,m=/[?&]go=(leak|leakalert)(?:&|$)/.exec(q),dv=/[?&]dev=([A-Za-z0-9-]+)/.exec(q),ai=/[?&]a=([-\w]+)/.exec(q);
+  if(m&&dv){var c=lkCode(dv[1]);
+    if(!S.me){try{localStorage.setItem("jr_leakpend",c);}catch(e){}}
+    else if(m[1]==="leakalert"){var H=S.houses.filter(function(h){return h.leak===c;})[0];leakSync().then(function(){if(H)leakAlertSheet(H.id,ai?ai[1]:"");});}
+    else{var H2=S.houses.filter(function(h){return h.leak===c;})[0];if(H2)leakDevSheet(H2.id);else leakLinkSheet(c);}
+    try{history.replaceState(null,"",location.pathname);}catch(e){}}
+  else if(S.me){var p="";try{p=localStorage.getItem("jr_leakpend")||"";localStorage.removeItem("jr_leakpend");}catch(e){}if(p&&!lkHouses().some(function(h){return h.leak===p;}))leakLinkSheet(p);}
+  leakSync();
+  if(S.pushTok&&lkHouses().length&&window.Notification&&Notification.permission==="granted")leakPushInit(false).catch(function(){});}
+document.addEventListener("visibilitychange",function(){if(!document.hidden)leakSync();});
+MI.leak='<path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z"/>';
 window.addEventListener("appinstalled",function(){if(!S.installed){S.installed=true;S.installedAt=Date.now();}save();memberSync();});
 render();
 memberSync();
@@ -1037,7 +1207,7 @@ function statusSync(){var L=S.reqs.filter(function(r){return (r.kind==="예약"|
   Promise.all(L.map(function(r){return fetch(DB_URL+"/reqstatus/"+encodeURIComponent(r.id)+".json").then(function(x){return x.ok?x.json():null;}).then(function(j){if(!j||!j.st)return false;
     var ch=r.st!==j.st||r.vdate!==(j.date||"")||r.vtime!==(j.time||"")||r.pname!==(j.pname||"")||(r.eta||"")!==(j.eta||"")||!!r.rpt!==!!j.rpt;if(ch){r.st=j.st;r.vdate=j.date||"";r.vtime=j.time||"";r.pname=j.pname||"";r.pphone=j.pphone||"";r.eta=j.eta||"";r.rpt=j.rpt&&typeof j.rpt==="object"?j.rpt:null;r.stAt=Date.now();}return ch;}).catch(function(){return false;});}))
   .then(function(a){if(a.some(Boolean)){save();if(S.tab==="home"&&!document.getElementById("sh"))render();}});}
-statusSync();pmSync();cfgSync();
+statusSync();pmSync();cfgSync();leakBoot();
 if(picking()&&S.me){try{sessionStorage.removeItem("jr_pick");}catch(e){}S.tab="home";render();tileSheet(-1,{n:"",tel:""},"연락처를 고르는 동안 휴대폰이 앱을 새로 열어서, 고른 분을 받아 오지 못했어요. 다시 \"연락처에서 고르기\"를 누르시거나, 이름과 번호를 여기에 적어 주세요.");}
 document.addEventListener("visibilitychange",function(){if(!document.hidden)statusSync();});
 })();

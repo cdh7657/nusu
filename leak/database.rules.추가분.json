@@ -1,0 +1,14 @@
+{
+  "//": "기존 규칙의 rules { } 안에 아래 세 칸을 추가합니다. 기존 칸은 지우지 마세요. config 에 push 를 읽을 수 있어야 합니다(기존 config 규칙이 읽기 허용이면 그대로 둠).",
+  "leak": {
+    "$code": {
+      ".read": "$code.length === 10",
+      ".write": "$code.length === 10",
+      "alerts": { "$aid": { ".validate": "newData.hasChildren(['t']) || data.exists()" } }
+    }
+  },
+  "leakIndex": {
+    "$code": { ".write": "$code.length === 10" }
+  },
+  "leakAdmin": { ".read": false, ".write": false }
+}

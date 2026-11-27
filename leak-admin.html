@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>누수알림기 관리</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="leak/icon.png"><link rel="apple-touch-icon" href="leak/icon.png">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%EB%88%84%EC%88%98%EC%95%8C%EB%A6%BC%EA%B8%B0%20%EA%B4%80%EB%A6%AC%22%2C%22short_name%22%3A%22%EB%88%84%EC%88%98%EA%B4%80%EB%A6%AC%22%2C%22start_url%22%3A%22https%3A%2F%2Fcdh7657.github.io%2Fnusu%2Fleak-admin.html%22%2C%22scope%22%3A%22https%3A%2F%2Fcdh7657.github.io%2Fnusu%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f7f0e1%22%2C%22theme_color%22%3A%22%2333261a%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdh7657.github.io%2Fnusu%2Fleak%2Ficon.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+<style>
+:root{--bg:#f7f0e1;--card:#fffdf8;--ink:#33261a;--muted:#7a6a58;--line:#e4d6b8;--hot:#c4571f;--ok:#2d6a3e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Noto Sans KR",sans-serif}
+.w{max-width:560px;margin:0 auto;padding:16px 14px 60px}h1{font-size:21px;margin:6px 0 12px}h2{font-size:18px;margin:16px 0 8px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.s{color:var(--muted);font-size:14px}
+.dev{cursor:pointer}.dev b{font-size:17px}.tag{font-size:13px;font-weight:800;padding:3px 9px;border-radius:99px;background:var(--line);white-space:nowrap}
+.tag.hot{background:var(--hot);color:#fff}.tag.ok{background:var(--ok);color:#fff}
+input,select,button{font:inherit;padding:12px;border-radius:12px;border:1.5px solid var(--line);width:100%;margin:5px 0}
+button{background:var(--ink);color:var(--bg);font-weight:700;border:0;cursor:pointer}button.g{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+a.tel{color:var(--hot);font-weight:800}svg{width:100%;height:110px}.al{border-top:1px solid var(--line);padding:6px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+</style></head><body><div class="w" id="app"></div>
+<script>
+(function(){"use strict";
+var API="https://asia-southeast1-daewon-booking.cloudfunctions.net/leakAdmin";
+var WEB={apiKey:"AIzaSyB8NWjchZimJNbX1Nn_bNcIW234afMWDeE",authDomain:"daewon-booking.firebaseapp.com",projectId:"daewon-booking",storageBucket:"daewon-booking.firebasestorage.app",messagingSenderId:"295193453425",appId:"1:295193453425:web:86f0e1a695af830ab14cd0"};
+var DB_URL="https://daewon-booking-default-rtdb.asia-southeast1.firebasedatabase.app";
+var $=function(s){return document.querySelector(s);},app=$("#app");
+var esc=function(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+var K="";try{K=localStorage.getItem("lk_admin_key")||"";}catch(e){}
+var T={drip:"미세 누수 의심(톱니)",decay:"미세 누수 의심(압력 하강)",flow:"계속 흐름(누수·터짐·틀어둠)",offline:"연결 끊김"};
+var now=function(){return Math.floor(Date.now()/1000);};
+var ago=function(t){if(!t)return "기록 없음";var d=now()-t;if(d<120)return "방금";if(d<3600)return Math.floor(d/60)+"분 전";if(d<86400)return Math.floor(d/3600)+"시간 전";return Math.floor(d/86400)+"일 전";};
+var when=function(t){return t?new Date(t*1000).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"";};
+function api(q,body){return fetch(API+"?k="+encodeURIComponent(K)+"&"+q,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{cache:"no-store"}).then(function(r){if(r.status===403)throw "key";if(!r.ok)throw r.status;return r.json();});}
+
+function login(err){app.innerHTML='<h1>누수알림기 관리</h1><div class="c"><p>관리 키를 넣어 주세요. (Firebase 콘솔 → 데이터베이스 → leakAdmin/key 에 넣어 둔 값)</p><input id="k" type="password" autocomplete="off"><button id="go">들어가기</button>'+(err?'<p class="s" style="color:var(--hot)">'+esc(err)+'</p>':'')+'</div>';
+  $("#go").onclick=function(){K=$("#k").value.trim();try{localStorage.setItem("lk_admin_key",K);}catch(e){}list();};}
+
+function list(){app.innerHTML='<h1>누수알림기 관리</h1><p class="s">불러오는 중…</p>';
+  api("op=list").then(function(idx){var L=Object.keys(idx).map(function(k){var v=idx[k];v.code=k;return v;}).sort(function(a,b){return ((b.last&&b.last.t)||0)-((a.last&&a.last.t)||0);});
+    var h='<div class="row"><h1>누수알림기 관리</h1><button class="g" id="rf" style="width:auto">새로고침</button></div>'
+     +'<div class="grid"><button id="push">이 폰으로 알림 받기</button><button class="g" id="out">관리 키 바꾸기</button></div>';
+    if(!L.length)h+='<div class="c">연결된 장치가 없어요.</div>';
+    L.forEach(function(v){var off=!v.seen||now()-v.seen>90*60,al=v.last&&now()-v.last.t<3*86400&&v.last.type!=="offline";
+      h+='<div class="c dev" data-d="'+esc(v.code)+'"><div class="row"><b>'+esc(v.name||"(이름 없음)")+' · '+esc(v.house||"")+'</b><span class="tag '+(off||al?"hot":"ok")+'">'+(off?"끊김":al?(v.last.learning?"학습 알림":"알림"):"정상")+'</span></div>'
+       +'<div class="s">'+esc(v.addr||"")+'</div><div class="s">마지막 연결 '+esc(ago(v.seen))+(v.last?' · 최근 '+esc(T[v.last.type]||v.last.type)+' '+esc(when(v.last.t)):'')+' · '+(v.mode==="basic"?"감압밸브 없음":"감압밸브+탱크")+'</div></div>';});
+    app.innerHTML=h;
+    [].forEach.call(document.querySelectorAll(".dev"),function(e){e.onclick=function(){dev(e.dataset.d);};});
+    $("#rf").onclick=list;$("#out").onclick=function(){login("");};$("#push").onclick=push;})
+  .catch(function(e){login(e==="key"?"관리 키가 맞지 않아요.":"불러오지 못했어요. (알림 서버를 올렸는지 확인) "+e);});}
+
+function chart(hist){var ks=Object.keys(hist||{}).sort();if(ks.length<2)return '<p class="s">아직 1시간 기록이 부족해요.</p>';
+  var H=ks.map(function(k){return hist[k];}),mn=Math.min.apply(null,H.map(function(x){return x.mn;})),mx=Math.max.apply(null,H.map(function(x){return x.mx;}));if(mx-mn<0.3)mn=mx-0.3;
+  var X=function(i){return (i/(ks.length-1)*300).toFixed(1);},Y=function(p){return (100-(p-mn)/(mx-mn)*92).toFixed(1);};
+  var band=H.map(function(x,i){return '<line x1="'+X(i)+'" x2="'+X(i)+'" y1="'+Y(x.mx)+'" y2="'+Y(x.mn)+'" stroke="#c9b48a" stroke-width="4"/>';}).join("");
+  var avg='<polyline fill="none" stroke="#33261a" stroke-width="2" points="'+H.map(function(x,i){return X(i)+","+Y(x.av);}).join(" ")+'"/>';
+  var rf=H.map(function(x,i){return x.rf?'<circle cx="'+X(i)+'" cy="104" r="'+Math.min(5,1+x.rf/10)+'" fill="#c4571f"/>':"";}).join("");
+  return '<svg viewBox="0 0 300 110">'+band+avg+rf+'</svg><p class="s">최근 '+ks.length+'시간 · 막대 = 시간별 최저~최고, 선 = 평균, 아래 주황 점 = 톱니(감압밸브 채움) 횟수 · '+mn.toFixed(2)+'~'+mx.toFixed(2)+' bar</p>';}
+
+function dev(code){app.innerHTML='<p class="s">불러오는 중…</p>';
+  api("op=dev&dev="+code).then(function(d){var o=d.owner||{},st=d.st||{},cf=d.cfg||{};
+    var A=Object.keys(d.alerts||{}).map(function(k){var a=d.alerts[k];a.id=k;return a;}).sort(function(a,b){return b.t-a.t;});
+    var h='<button class="g" id="bk" style="width:auto">← 목록</button><h1>'+esc(o.name||"")+' · '+esc(o.house||"")+'</h1>'
+     +'<div class="c"><div>'+esc((o.addr||"")+" "+(o.addr2||""))+'</div><div><a class="tel" href="tel:'+esc(o.phone||"")+'">'+esc(o.phone||"")+' 전화</a></div><div class="s">장치 코드 '+esc(code.slice(0,5)+"-"+code.slice(5))+' · '+esc(st.fw||"")+' · 와이파이 '+esc(st.rssi||"")+'dBm</div></div>'
+     +'<div class="c"><div class="row"><b>지금 '+(st.p!=null?(+st.p).toFixed(2):"-")+' bar</b><span class="s">정지 압력 '+(st.base!=null?(+st.base).toFixed(2):"-")+' · '+esc(ago(st.t))+'</span></div>'+chart(d.hist)+'</div>'
+     +'<h2>최근 알림</h2><div class="c">'+(A.length?A.map(function(a){return '<div class="al"><b>'+esc(T[a.type]||a.type)+'</b>'+(a.learning?' <span class="tag">학습 중</span>':'')+'<div class="s">'+esc(when(a.t))+(a.p!=null?' · '+(+a.p).toFixed(2)+' bar':'')+(a.period?' · 톱니 '+Math.round(a.period)+'초':'')+(a.ack?' · 고객 응답: '+esc({use:"쓰는 중",test:"잠금 테스트",book:"접수"}[a.ack]||a.ack):' · 고객 미확인')+(a.test?' · 테스트 '+esc(a.test.res)+' ('+(+a.test.p0).toFixed(2)+'→'+(+a.test.p1).toFixed(2)+')':'')+'</div></div>';}).join(""):'<p class="s">알림 없음</p>')+'</div>'
+     +'<h2>설정</h2><div class="c"><div class="grid"><label>설치 방식<select id="m"><option value="prv"'+(cf.mode!=="basic"?" selected":"")+'>감압밸브+탱크</option><option value="basic"'+(cf.mode==="basic"?" selected":"")+'>감압밸브 없음</option></select></label>'
+     +'<label>학습 끝<input id="lu" type="date" value="'+(cf.learnUntil?new Date(cf.learnUntil*1000).toISOString().slice(0,10):"")+'"></label>'
+     +'<label>톱니 기준(bar)<input id="rb" type="number" step="0.01" value="'+(cf.riseBar||0.06)+'"></label><label>흐름 기준(bar)<input id="fb" type="number" step="0.01" value="'+(cf.flowBar||(cf.mode==="basic"?0.1:0.08))+'"></label>'
+     +'<label>흐름 시간(분)<input id="fm" type="number" step="5" value="'+(cf.flowMin||60)+'"></label></div><button id="sv">설정 저장</button><p class="s">장치는 1시간 안에 새 설정을 받아요.</p></div>';
+    app.innerHTML=h;$("#bk").onclick=list;
+    $("#sv").onclick=function(){var b={mode:$("#m").value,riseBar:+$("#rb").value,flowBar:+$("#fb").value,flowMin:+$("#fm").value};var lu=$("#lu").value;if(lu)b.learnUntil=Math.floor(new Date(lu+"T00:00:00+09:00").getTime()/1000);
+      api("op=cfg&dev="+code,b).then(function(){alert("저장했어요");}).catch(function(e){alert("저장 실패 "+e);});};})
+  .catch(function(e){if(e==="key")login("관리 키가 맞지 않아요.");else{app.innerHTML='<p>불러오지 못했어요 ('+esc(e)+')</p><button id="bk">← 목록</button>';$("#bk").onclick=list;}});}
+
+function push(){var b=$("#push");b.disabled=true;b.textContent="켜는 중…";
+  if(!("serviceWorker" in navigator)||!window.Notification){alert("이 브라우저는 알림을 못 받아요. 크롬으로 열고, 아이폰은 홈 화면에 추가한 뒤 열어 주세요.");b.disabled=false;b.textContent="이 폰으로 알림 받기";return;}
+  fetch(DB_URL+"/config/push.json",{cache:"no-store"}).then(function(r){return r.json();}).then(function(cf){if(!cf||!cf.vapid)throw "novapid";
+    return Notification.requestPermission().then(function(p){if(p!=="granted")throw "denied";
+      return navigator.serviceWorker.register("firebase-messaging-sw.js").then(function(reg){var u="https://www.gstatic.com/firebasejs/13.2.0/";
+        return Promise.all([import(u+"firebase-app.js"),import(u+"firebase-messaging.js")]).then(function(m){var A=m[0],M=m[1];
+          var a=(A.getApps()||[]).filter(function(x){return x.name==="adm";})[0]||A.initializeApp(WEB,"adm");var ms=M.getMessaging(a);
+          M.onMessage(ms,function(p){var n=p&&p.notification||{};alert((n.title||"알림")+"\n"+(n.body||""));list();});
+          return M.getToken(ms,{vapidKey:cf.vapid,serviceWorkerRegistration:reg});});});});})
+  .then(function(tok){return api("op=token",{token:tok});}).then(function(){b.textContent="✅ 이 폰으로 알림이 와요";})
+  .catch(function(e){b.disabled=false;b.textContent="이 폰으로 알림 받기";alert(e==="denied"?"휴대폰 설정에서 크롬 알림을 허용해 주세요.":e==="novapid"?"웹 푸시 키(config/push)가 아직 없어요. 설치안내 2단계를 해 주세요.":"알림을 켜지 못했어요: "+e);});}
+
+var q=/[?&]dev=([A-Z0-9]{10})/.exec(location.search);
+if(!K)login("");else if(q)dev(q[1]);else list();
+})();
+</script></body></html>
