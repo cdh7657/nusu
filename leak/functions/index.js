@@ -3,6 +3,7 @@
   - leakAlert  : 장치가 /leak/{코드}/alerts 에 알림을 쓰면 → 고객 폰(/leak/{코드}/tokens)과 관리자 폰(/leakAdmin/tokens)으로 푸시
                  학습 기간(설치 후 1달) 중 미세누수 알림은 관리자에게만 보냄
   - leakOffline: 30분마다 장치 연결을 확인 → 90분 넘게 소식이 없으면 한 번 알림
+  - leakWeekly : 매주 월요일 아침 9시, 지난 7일 물 사용 요약을 고객 폰으로 (사고는 그때그때 바로 알림)
   - leakAdmin  : 관리 화면(leak-admin.html)용 창구. 고객 목록은 DB에서 아무나 못 읽게 막고, 관리 키가 맞을 때만 이걸로 보여 줌
   배포: leak/설치안내.md 의 "알림 서버 올리기" 참고
 */
@@ -17,9 +18,24 @@ const INSTANCE = "daewon-booking-default-rtdb";
 const APP = "https://cdh7657.github.io/nusu/";
 const ICON = APP + "leak/icon.png";
 
+// v2(보일러실 밸브형) 알림 문구. valve: 알림 때 밸브 상태
+const W2 = {
+  burst: ["🚨 물이 아주 많이 흐르고 있어요", "배관이 터졌을 수 있어요. 쓰는 중이 아니면 눌러 주세요."],
+  unexplained: ["💧 아무도 수도를 안 틀었는데 물이 흘러요", "쓰는 중인지 눌러서 알려 주세요. 대답이 없으면 밸브를 잠가요."],
+  residual: ["💧 수도를 잠근 뒤에도 물이 조금씩 흘러요", "변기·수전이 새는지 눌러서 확인해 주세요."],
+  continuous: ["💧 물이 오래 계속 흐르고 있어요", "쓰는 중인지 눌러서 알려 주세요. 대답이 없으면 밸브를 잠가요."],
+  away_use: ["🚨 집을 비운 동안 물이 흘렀어요", "밸브를 잠갔어요. 눌러서 확인해 주세요."],
+  hold_leak: ["🚨 물을 안 쓰는데 배관 압력이 빠져요 (누수)", "밸브를 잠가 두었어요. 쓰실 땐 앱에서 '밸브 열기'를 누르고 출동 접수해 주세요."],
+  closed_drop: ["🚨 잠가 둔 동안 압력이 빠졌어요 (누수 의심)", "밸브를 잠가 두었어요. 눌러서 확인해 주세요."],
+  protect: ["🔒 대답이 없어 밸브를 잠갔어요", "물을 쓰실 땐 앱에서 '밸브 열기'를 눌러 주세요."],
+  valve_fault: ["⚠️ 밸브가 제대로 안 열린 것 같아요", "물이 안 나오면 밸브 옆 손잡이로 직접 열고 접수해 주세요."],
+  night_flow: ["💧 새벽에도 물이 조금씩 계속 흘러요 (3일째)", "미세누수일 수 있어요. 눌러서 확인해 주세요."],
+  sensor: ["⚠️ 누수감지기 센서 이상", "유량계나 압력센서 연결을 점검해야 해요. 접수해 주세요."],
+};
 function words(a, owner) {
   const house = owner.house || owner.name || "우리 집";
   const learn = a.learning ? "[학습 중·관리자만] " : "";
+  if (W2[a.type]) return { title: learn + W2[a.type][0], body: `${house} · ${W2[a.type][1]}` };
   if (a.type === "flow") return {
     title: learn + "🚨 물이 1시간 넘게 계속 흐르고 있어요",
     body: `${house} · 물을 쓰는 중이 아니라면 계량기 밸브를 잠그고 눌러 주세요.`,
@@ -107,6 +123,43 @@ exports.leakOffline = onSchedule(
   }
 );
 
+// 주간 보고: 장치가 1시간마다 올리는 hist(v2: vol·qMax·closed·opens·qNight)를 7일치 합산
+exports.leakWeekly = onSchedule(
+  { schedule: "0 9 * * 1", region: REGION, timeZone: "Asia/Seoul" },
+  async () => {
+    const db = admin.database();
+    const idx = (await db.ref("leakIndex").get()).val() || {};
+    const d = new Date(Date.now() + 9 * 3600e3 - 7 * 86400e3);  // 한국 시각 7일 전
+    const from = String(d.getUTCFullYear() * 1000000 + (d.getUTCMonth() + 1) * 10000 + d.getUTCDate() * 100);
+    for (const dev of Object.keys(idx)) {
+      const [hS, ownS, tokS, alS] = await Promise.all([
+        db.ref(`leak/${dev}/hist`).orderByKey().startAt(from).get(),
+        db.ref(`leak/${dev}/owner`).get(), db.ref(`leak/${dev}/tokens`).get(),
+        db.ref(`leak/${dev}/alerts`).orderByChild("t").startAt(Math.floor(Date.now() / 1000) - 7 * 86400).get(),
+      ]);
+      const H = hS.val(); if (!H) continue;
+      let vol = 0, closed = 0, n = 0, qN = [];
+      for (const v of Object.values(H)) {
+        if (!v || v.vol == null) continue;  // v1 장치는 건너뜀
+        vol += +v.vol || 0; closed += +v.closed || 0; n++;
+        if (v.qNight != null) qN.push(+v.qNight);
+      }
+      if (!n) continue;
+      const al = Object.values(alS.val() || {}).filter((a) => a && a.type !== "offline").length;
+      const night = qN.length ? Math.min(...qN) : null;
+      const owner = ownS.val() || {};
+      const rep = { from, t: Math.floor(Date.now() / 1000), vol: Math.round(vol), perDay: Math.round(vol / 7),
+        closedPct: Math.round(closed / (n * 3600) * 100), alerts: al, nightMin: night };
+      await db.ref(`leak/${dev}/weekly/${from}`).set(rep);
+      const msg = {
+        title: al ? `📋 지난주 물 사용 · 알림 ${al}번` : "📋 지난주 물 사용 · 이상 없음",
+        body: `${owner.house || "우리 집"} · 7일 ${rep.vol}L (하루 ${rep.perDay}L)` + (night != null && night > 0.05 ? ` · 새벽에도 조금씩 흐름 ${night.toFixed(2)}L/분` : ""),
+      };
+      await push(db.ref(`leak/${dev}/tokens`), tokS.val(), msg, `${APP}?go=leak&dev=${dev}`, `leakw-${dev}`);
+    }
+  }
+);
+
 // 관리 화면 창구: ?k=관리키&op=list | op=dev&dev=코드 | op=token(POST {token})
 exports.leakAdmin = onRequest({ region: REGION, cors: ["https://cdh7657.github.io"] }, async (req, res) => {
   const db = admin.database();
@@ -134,7 +187,11 @@ exports.leakAdmin = onRequest({ region: REGION, cors: ["https://cdh7657.github.i
   if (op === "cfg" && req.method === "POST") {  // 기준값 조정(riseBar, flowBar, flowMin, mode, learnUntil)
     const dev = String(req.query.dev || "").replace(/[^A-Z0-9]/g, "");
     const b = req.body || {}, up = {};
-    ["riseBar", "flowBar", "flowMin", "learnUntil", "base"].forEach((k) => { if (typeof b[k] === "number") up[k] = b[k]; });
+    ["riseBar", "flowBar", "flowMin", "learnUntil", "base",
+     // v2
+     "qMin", "burstLpm", "burstSec", "burstAckSec", "unexplSec", "contDay", "contNight", "awayL", "idleCloseSec",
+     "holdSec", "holdDrop", "useDrop", "nightFrom", "nightTo", "autoProtect", "bigLpm", "ackWaitDay", "ackWaitNight",
+     "openThrOpen", "openThrClosed", "pGain", "pOff", "pmax", "mbId", "mbReg", "mbFmt", "mbScale", "mbUnit"].forEach((k) => { if (typeof b[k] === "number") up[k] = b[k]; });
     if (b.mode === "prv" || b.mode === "basic") up.mode = b.mode;
     if (dev.length !== 10 || !Object.keys(up).length) { res.status(400).json({ err: "cfg" }); return; }
     await db.ref(`leak/${dev}/cfg`).update(up); res.json({ ok: true, up }); return;

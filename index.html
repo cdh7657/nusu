@@ -1046,7 +1046,13 @@ function lkHouses(){return S.houses.filter(function(h){return h.leak;});}
 function lkNow(){return Math.floor(Date.now()/1000);}
 function lkAgo(t){if(!t)return "기록 없음";var d=lkNow()-t;if(d<120)return "방금";if(d<3600)return Math.floor(d/60)+"분 전";if(d<86400)return Math.floor(d/3600)+"시간 전";return Math.floor(d/86400)+"일 전";}
 function lkWhen(t){return t?new Date(t*1000).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"";}
-var LK_T={drip:"물을 안 쓰는데 조금씩 새는 것 같아요",decay:"물을 안 쓰는데 압력이 계속 내려가요",flow:"물이 1시간 넘게 계속 흐르고 있어요",offline:"누수알림기 연결이 끊겼어요"};
+var LK_T={drip:"물을 안 쓰는데 조금씩 새는 것 같아요",decay:"물을 안 쓰는데 압력이 계속 내려가요",flow:"물이 1시간 넘게 계속 흐르고 있어요",offline:"누수알림기 연결이 끊겼어요",
+  burst:"물이 아주 많이 흐르고 있어요",unexplained:"아무도 수도를 안 틀었는데 물이 흘러요",residual:"수도를 잠근 뒤에도 물이 조금씩 흘러요",continuous:"물이 오래 계속 흐르고 있어요",
+  away_use:"집을 비운 동안 물이 흘렀어요",hold_leak:"물을 안 쓰는데 배관 압력이 빠져요",closed_drop:"잠가 둔 동안 압력이 빠졌어요",protect:"대답이 없어 밸브를 잠갔어요",
+  valve_fault:"밸브가 제대로 안 열린 것 같아요",night_flow:"새벽에도 물이 조금씩 계속 흘러요",sensor:"누수감지기 센서 이상"};
+var LK_ST={open:"열림",hold:"잠그고 압력 확인 중",closed_ok:"잠금 · 새지 않음 확인",leak_held:"누수로 잠가 둠",override:"열림 (직접 엶)"};
+function lkV2(c){var st=LK.st[c];return !!(st&&st.kind==="v2");}
+function lkCmd(c,v){return lkPut(c,"cmd",v,"PATCH");}
 function lkPut(c,sub,v,m){return fetch(lkUrl(c,sub),{method:m||"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});}
 function lkGet(c,sub,q){return fetch(lkUrl(c,sub)+(q||""),{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});}
 
@@ -1062,6 +1068,8 @@ function lkState(H){var c=H.leak,st=LK.st[c],a=lkOpen(c);
   if(!st)return {cls:"",t:"누수알림기 연결 확인 중",s:"장치가 아직 소식을 보내지 않았어요"};
   if(lkNow()-st.t>90*60)return {cls:"hot",t:"누수알림기 연결이 끊겼어요",s:"마지막 연결 "+lkAgo(st.t)+" · 전원·와이파이를 확인해 주세요"};
   var cf=(LK.cfg||{})[c]||{},learn=cf.learnUntil&&cf.learnUntil>lkNow()?" · 우리 집 평균을 배우는 중 ("+Math.ceil((cf.learnUntil-lkNow())/86400)+"일 남음)":"";
+  if(st.kind==="v2"){if(st.st==="leak_held")return {cls:"hot",t:"누수로 밸브를 잠가 두었어요",s:"물을 쓰실 땐 '밸브 열기' · 출동 접수해 주세요"};
+    return {cls:"ok",t:"누수감지기 정상 · 밸브 "+(LK_ST[st.st]||st.st),s:(st.away?"집 비움 중 · ":"")+(st.trickle?"물 틀어둠 · ":"")+(st.lastTest?"마지막 점검 "+lkAgo(st.lastTest)+" · ":"")+lkAgo(st.t)};}
   return {cls:"ok",t:"누수알림기 정상",s:"지금 "+(+st.p).toFixed(2)+" bar · "+lkAgo(st.t)+learn};}
 function leakHomeHtml(){return lkHouses().map(function(H){var x=lkState(H);
   return '<button type="button" class="item '+x.cls+'" data-go="'+(x.a?"leakalert":"leakdev")+'" data-h="'+esc(H.id)+'"'+(x.a?' data-id="'+esc(x.a.id)+'"':'')+'><span class="m"><span class="t">'+esc(x.t)+'</span><span class="s" style="display:block">'+esc(H.name)+' · '+esc(x.s)+'</span></span><span class="tag'+(x.cls==="ok"?" ok":"")+'">'+(x.a?"확인":"보기")+'</span></button>';}).join("");}
@@ -1116,7 +1124,7 @@ function leakPush(btn){if(btn){btn.disabled=true;btn.textContent="알림 켜는 
      else toast("알림을 켜지 못했어요. 잠시 뒤 다시 해 주세요");});}
 
 /* 장치 화면 */
-function leakDevSheet(hid){var H=house(hid);if(!H||!H.leak)return;var c=H.leak,x=lkState(H),st=LK.st[c]||{},A=LK.al[c]||[],cf=(LK.cfg||{})[c]||{};
+function leakDevSheet(hid){var H=house(hid);if(!H||!H.leak)return;if(lkV2(H.leak)){leakDev2(H);return;}var c=H.leak,x=lkState(H),st=LK.st[c]||{},A=LK.al[c]||[],cf=(LK.cfg||{})[c]||{};
   sheet("누수알림기 · "+H.name,'<div class="box '+x.cls+'"><p><b>'+esc(x.t)+'</b></p><p class="sub">'+esc(x.s)+'</p></div>'
    +(st.t?'<div class="list"><div class="item"><span class="m"><span class="t">지금 압력</span></span><span class="tag">'+(+st.p).toFixed(2)+' bar</span></div>'
      +(st.base?'<div class="item"><span class="m"><span class="t">물 안 쓸 때 압력</span></span><span class="tag">'+(+st.base).toFixed(2)+' bar</span></div>':'')
@@ -1128,6 +1136,42 @@ function leakDevSheet(hid){var H=house(hid);if(!H||!H.leak)return;var c=H.leak,x
   $("#lkUn").onclick=function(){if(!this.dataset.arm){this.dataset.arm=1;this.textContent="한 번 더 누르면 끊어요";return;}
     if(S.pushTok)fetch(lkUrl(c,"tokens/"+lkHash(S.pushTok)),{method:"DELETE"}).catch(function(){});delete H.leak;save();closeSheet();render();toast("연결을 끊었어요");};}
 
+/* v2(보일러실 밸브형) 장치 화면 */
+function leakDev2(H){var c=H.leak,x=lkState(H),st=LK.st[c]||{},A=LK.al[c]||[],held=st.st==="leak_held",closed=st.valve==="closed";
+  sheet("누수감지기 · "+H.name,'<div class="box '+x.cls+'"><p><b>'+esc(x.t)+'</b></p><p class="sub">'+esc(x.s)+'</p></div>'
+   +'<div class="list"><div class="item"><span class="m"><span class="t">밸브</span></span><span class="tag">'+esc(LK_ST[st.st]||"-")+'</span></div>'
+   +'<div class="item"><span class="m"><span class="t">지금 유량 · 압력</span></span><span class="tag">'+(st.q!=null?(+st.q).toFixed(1):"-")+' L/분 · '+(st.p!=null?(+st.p).toFixed(2):"-")+' bar</span></div></div>'
+   +(closed?'<button type="button" class="btn hot" id="l2Open">밸브 열기 (2시간 자동잠금 안 함)</button>':'')
+   +'<div class="big2"><button type="button" class="btn'+(st.away?' hot':'')+'" id="l2Away">'+(st.away?"집 비움 끄기":"집 비움")+'</button><button type="button" class="btn'+(st.trickle?' hot':'')+'" id="l2Tr">'+(st.trickle?"물 틀어둠 끄기":"물 틀어둠 (동파 방지)")+'</button></div>'
+   +(!closed?'<button type="button" class="btn" id="l2Test">지금 점검 (잠그고 3분 압력 확인)</button>':'')
+   +'<button type="button" class="btn ghost" id="l2Fx">수전 등록</button>'
+   +(held?'<button type="button" class="btn hot" id="l2Book">출동 접수하기</button>':'')
+   +leakPushBtn()
+   +(A.length?'<div class="field"><span class="lbl">최근 알림</span>'+A.map(function(a){return '<p class="sub">'+esc(lkWhen(a.t))+' · '+esc(LK_T[a.type]||a.type)+(a.ack?" · 확인함":"")+'</p>';}).join("")+'</div>':'')
+   +'<p class="sub">집 비움: 물 쓰면 바로 알리고 잠가요. 물 틀어둠: 겨울에 수도를 조금 틀어 둘 때 그만큼은 누수로 안 봐요.</p>'
+   +'<p class="sub">장치 코드 '+esc(lkPretty(c))+'</p><button type="button" class="lnk" id="lkUn">이 집에서 연결 끊기</button>');
+  var done=function(m){toast(m);setTimeout(function(){leakSync().then(function(){if(document.getElementById("sh"))leakDev2(H);});},6000);};
+  var o=$("#l2Open");if(o)o.onclick=function(){this.disabled=true;lkCmd(c,{open:lkNow()}).then(function(){done("밸브를 여는 중이에요 (5초쯤)");}).catch(function(){toast("인터넷을 확인해 주세요");});};
+  $("#l2Away").onclick=function(){lkCmd(c,{away:!st.away}).then(function(){st.away=!st.away;done(st.away?"집 비움을 켰어요":"집 비움을 껐어요");});};
+  $("#l2Tr").onclick=function(){var v=st.trickle?0:+(prompt("틀어 둔 물이 1분에 몇 L쯤인가요? (모르면 0.5)","0.5")||0);if(!st.trickle&&!(v>0))return;lkCmd(c,{trickle:v}).then(function(){st.trickle=v>0;done(v>0?"물 틀어둠을 켰어요":"물 틀어둠을 껐어요");});};
+  var tb=$("#l2Test");if(tb)tb.onclick=function(){lkCmd(c,{test:lkNow()}).then(function(){done("물을 쓰지 않으면 잠그고 3분 확인해요. 수도를 틀면 바로 열려요");});};
+  $("#l2Fx").onclick=function(){leakFxSheet(H);};
+  var bk=$("#l2Book");if(bk)bk.onclick=function(){leakBook(H,A[0],"");};
+  $("#lkUn").onclick=function(){if(!this.dataset.arm){this.dataset.arm=1;this.textContent="한 번 더 누르면 끊어요";return;}
+    if(S.pushTok)fetch(lkUrl(c,"tokens/"+lkHash(S.pushTok)),{method:"DELETE"}).catch(function(){});delete H.leak;save();closeSheet();render();toast("연결을 끊었어요");};}
+
+/* 수전 등록: 이름을 고르고 2분 동안 그 수전을 3번 열었다 잠금 → 장치가 파형·유량을 올림 */
+function leakFxSheet(H){var c=H.leak,names=["주방","세면대","변기","샤워","세탁기","마당"],sel="";
+  var draw=function(list){sheet("수전 등록",'<p>어느 수전인가요?</p><div class="chips" id="fxN">'+names.map(function(n){return '<button type="button" data-n="'+esc(n)+'" class="'+(n===sel?"on":"")+'">'+esc(n)+'</button>';}).join("")+'</div>'
+     +'<ol class="how"><li>다른 물은 모두 잠급니다</li><li><b>시작</b>을 누릅니다</li><li>그 수전을 <b>평소처럼</b> 열고 10초 뒤 잠그기를 3번 합니다</li></ol>'
+     +'<p class="sub">밸브가 열렸을 때와 잠겼을 때 모양이 달라서, 밤에 한 번 더 해 두면 더 정확해요.</p>'
+     +'<button type="button" class="btn hot" id="fxGo"'+(sel?'':' disabled')+'>시작 (2분)</button>'
+     +(list&&list.length?'<div class="field"><span class="lbl">등록된 기록</span>'+list.map(function(f){return '<p class="sub">'+esc(f.name||"?")+' · '+(+f.q).toFixed(1)+' L/분 · 밸브 '+(f.valve==="closed"?"잠김":"열림")+'</p>';}).join("")+'</div>':''));
+    [].forEach.call(document.querySelectorAll("#fxN [data-n]"),function(b){b.onclick=function(){sel=b.dataset.n;draw(list);};});
+    $("#fxGo").onclick=function(){var b=this;b.disabled=true;lkCmd(c,{until:lkNow()+120,name:sel}).then(function(){b.textContent="등록 중… 수전을 3번 열었다 잠가 주세요";
+      setTimeout(function(){lkGet(c,"fx",'?orderBy=%22%24key%22&limitToLast=12').then(function(v){draw(Object.keys(v||{}).map(function(k){return v[k];}));toast("등록 시간이 끝났어요");}).catch(function(){});},125000);}).catch(function(){b.disabled=false;toast("인터넷을 확인해 주세요");});};};
+  lkGet(c,"fx",'?orderBy=%22%24key%22&limitToLast=12').then(function(v){draw(Object.keys(v||{}).map(function(k){return v[k];}));}).catch(function(){draw([]);});}
+
 /* 알림 확인: 물 쓰는 중인지 묻고 → 아니면 잠금 테스트 → 새면 출동 접수 */
 function leakAlertSheet(hid,aid){var H=house(hid);if(!H||!H.leak)return;var c=H.leak;if(!aid){leakDevSheet(hid);return;}
   var go=function(a){if(!a){leakDevSheet(hid);return;}
@@ -1137,7 +1181,10 @@ function leakAlertSheet(hid,aid){var H=house(hid);if(!H||!H.leak)return;var c=H.
       :'<p><b>지금 집에서 물을 쓰고 계신가요?</b></p><p class="sub">마당 물주기, 빨래, 목욕처럼 오래 쓰는 중이면 "쓰는 중"을 눌러 주세요.</p><div class="big2"><button type="button" class="btn" id="laUse">네, 쓰는 중이에요</button><button type="button" class="btn hot" id="laNo">아니요, 안 써요</button></div><button type="button" class="btn ghost" id="laBook">바로 출동 접수</button>'));
     var ack=function(k){lkPut(c,"alerts/"+a.id,{ack:k,ackAt:lkNow()},"PATCH").catch(function(){});lkPut(c,"cmd",{ack:lkNow()},"PATCH").catch(function(){});a.ack=k;};
     var bU=$("#laUse");if(bU)bU.onclick=function(){ack("use");closeSheet();render();toast("확인했어요. 다 쓰신 뒤에도 알림이 오면 잠금 테스트를 해 주세요");};
-    var bN=$("#laNo");if(bN)bN.onclick=function(){ack("test");leakTestSheet(hid,a);};
+    var bN=$("#laNo");if(bN)bN.onclick=function(){
+      if(lkV2(c)){lkPut(c,"alerts/"+a.id,{ack:"close",ackAt:lkNow()},"PATCH").catch(function(){});a.ack="close";
+        lkCmd(c,{close:lkNow()}).then(function(){sheet("밸브를 잠갔어요",'<p>장치가 밸브를 잠그고 3분 동안 압력을 봐요. 압력이 빠지면 <b>누수로 잠가 두고</b> 다시 알려 드려요.</p><p class="sub">물이 필요하면 수도를 틀면 바로 열려요. 새는 게 맞으면 출동 접수해 주세요.</p><button type="button" class="btn hot" id="laB2">출동 접수하기</button>');$("#laB2").onclick=function(){leakBook(H,a,"");};}).catch(function(){toast("인터넷을 확인해 주세요");});return;}
+      ack("test");leakTestSheet(hid,a);};
     $("#laBook").onclick=function(){ack("book");leakBook(H,a,"");};};
   var have=(LK.al[c]||[]).filter(function(x){return x.id===aid;})[0];
   if(have){go(have);return;}
